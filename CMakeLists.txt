@@ -11,14 +11,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
-add_library(mcpprotocol
+add_library(mcpprotocol-lib
         mcpprotocol/deserializer.cpp
         mcpprotocol/serializer.cpp
 )
-target_include_directories(mcpprotocol PUBLIC .)
-target_compile_options(mcpprotocol PRIVATE
+target_include_directories(mcpprotocol-lib PUBLIC .)
+target_compile_options(mcpprotocol-lib PRIVATE
         $<IF:$<CXX_COMPILER_ID:MSVC>,/W4 /WX,-Wall -Wextra -pedantic -Werror>
 )
 
 add_executable(tests test/init.cpp)
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain mcpprotocol)
+target_link_libraries(tests PRIVATE mcpprotocol-lib Catch2::Catch2WithMain)
