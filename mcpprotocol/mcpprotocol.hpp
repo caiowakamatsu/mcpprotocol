@@ -8,8 +8,14 @@
 namespace mcp {
     template <mcp::version version>
     struct versioned_protocol {
-        using serializer = mcp::serializer;
-        using deserializer = mcp::deserializer;
+        template <typename T>
+        static std::vector<std::byte> serialize(T packet) {
+            return mcp::serialize(packet);
+        }
+//        template <typename T>
+//        static void deserializer(T packet) {
+//            deserialize(packet);
+//        }
     };
 } // mcp
 

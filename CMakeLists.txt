@@ -20,5 +20,9 @@ target_compile_options(mcpprotocol-lib PRIVATE
         $<IF:$<CXX_COMPILER_ID:MSVC>,/W4 /WX,-Wall -Wextra -pedantic -Werror>
 )
 
-add_executable(tests test/init.cpp)
+add_executable(tests
+        test/init.cpp
+        test/serializer.cpp
+        test/writer.cpp
+)
 target_link_libraries(tests PRIVATE mcpprotocol-lib Catch2::Catch2WithMain)
