@@ -14,6 +14,8 @@ FetchContent_MakeAvailable(Catch2)
 add_library(mcpprotocol-lib
         mcpprotocol/deserializer.cpp
         mcpprotocol/serializer.cpp
+        mcpprotocol/writer.cpp
+        mcpprotocol/reader.cpp
 )
 target_include_directories(mcpprotocol-lib PUBLIC .)
 target_compile_options(mcpprotocol-lib PRIVATE
