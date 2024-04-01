@@ -34,6 +34,8 @@ namespace mcp {
 
         void write(mcp::var_int value);
 
+        void write(mcp::var_long value);
+
     private:
 
         std::vector<std::byte> * const vector = nullptr;

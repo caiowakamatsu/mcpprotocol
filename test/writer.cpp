@@ -127,3 +127,27 @@ TEST_CASE("VarInt", "[writer]") {
             0x80, 0x80, 0x80, 0x80, 0x08
     });
 }
+
+TEST_CASE("VarLong", "[writer]") {
+    auto buffer = std::vector<std::byte>();
+    auto writer = mcp::writer(buffer);
+
+    writer.write(mcp::var_long(0));
+    writer.write(mcp::var_long(1));
+    writer.write(mcp::var_long(2));
+    writer.write(mcp::var_long(127));
+    writer.write(mcp::var_long(128));
+    writer.write(mcp::var_long(255));
+    writer.write(mcp::var_long(2147483647));
+    writer.write(mcp::var_long(9223372036854775807));
+
+    ensure_buffer_ok(buffer, {
+        0x00,
+        0x01,
+        0x02,
+        0x7f,
+        0x80, 0x01,
+        0xff, 0x01,
+        0xff, 0xff, 0xff, 0xff, 0x07,
+        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f });
+}

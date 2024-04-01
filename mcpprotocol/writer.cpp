@@ -26,16 +26,17 @@ namespace mcp {
     }
 
     void writer::write(mcp::var_int value) {
-        /*
-         auto as_unsigned = std::bit_cast<std::uint32_t>(value);
-         do {
-            auto temp = static_cast<std::uint8_t>(as_unsigned & 0b01111111);
-            as_unsigned >>= 7;
-            if (as_unsigned != 0) { temp |= 0b10000000; }
-            data.push_back(std::byte(temp));
-         } while (as_unsigned != 0);
-         */
         auto as_uint = std::bit_cast<std::uint32_t>(value.value);
+        do {
+            auto temp = static_cast<std::uint8_t>(as_uint & 0b01111111);
+            as_uint >>= 7;
+            if (as_uint != 0) { temp |= 0b10000000; }
+            write(std::byte(temp));
+        } while (as_uint != 0);
+    }
+
+    void writer::write(mcp::var_long value) {
+        auto as_uint = std::bit_cast<std::uint64_t>(value.value);
         do {
             auto temp = static_cast<std::uint8_t>(as_uint & 0b01111111);
             as_uint >>= 7;
