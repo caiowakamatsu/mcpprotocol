@@ -12,7 +12,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 add_library(mcpprotocol-lib
-        mcpprotocol/deserializer.cpp
         mcpprotocol/serializer.cpp
         mcpprotocol/writer.cpp
         mcpprotocol/reader.cpp
@@ -26,5 +25,6 @@ add_executable(tests
         test/init.cpp
         test/serializer.cpp
         test/writer.cpp
+        test/deserializer.cpp
 )
 target_link_libraries(tests PRIVATE mcpprotocol-lib Catch2::Catch2WithMain)
