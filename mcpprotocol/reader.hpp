@@ -7,6 +7,8 @@
 #include <concepts>
 #include <span>
 #include <vector>
+#include <string>
+#include <cstring>
 
 #include <mcpprotocol/types.hpp>
 
@@ -36,20 +38,6 @@ namespace mcp {
             }
         }
 
-        template <>
-        [[nodiscard]] bool read<bool>() {
-            return static_cast<bool>(read<std::uint8_t>());
-        }
-
-        template <>
-        [[nodiscard]] std::string read<std::string>() {
-            auto str = std::string();
-            const auto length = read<std::uint32_t>();
-            const auto data = read_n(length);
-            return { reinterpret_cast<const char*>(data.data()), length };
-        }
-
-        void read(mcp::var_int value);
 
     private:
         void ensure_remaining(std::uint64_t count);
@@ -57,6 +45,19 @@ namespace mcp {
         std::span<const std::byte> buffer;
         std::uint64_t cursor;
     };
+
+    template <>
+    [[nodiscard]] inline bool reader::read<bool>() {
+        return static_cast<bool>(read<std::uint8_t>());
+    }
+
+    template <>
+    [[nodiscard]] inline std::string reader::read<std::string>() {
+        auto str = std::string();
+        const auto length = read<std::uint32_t>();
+        const auto data = read_n(length);
+        return { reinterpret_cast<const char*>(data.data()), length };
+    }
 
 } // mcp
 

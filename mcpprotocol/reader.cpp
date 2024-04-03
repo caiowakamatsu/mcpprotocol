@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "reader.hpp"
 
 namespace mcp {

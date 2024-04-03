@@ -2,6 +2,7 @@
 
 #include <bit>
 #include <span>
+#include <string_view>
 
 namespace mcp {
     writer::writer(std::vector<std::byte> &vector) : vector(&vector) {
