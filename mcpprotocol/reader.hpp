@@ -38,11 +38,7 @@ namespace mcp {
             }
         }
 
-        template <>
-        [[nodiscard]] mcp::var_int read<mcp::var_int>();
 
-        template <>
-        [[nodiscard]] mcp::var_long read<mcp::var_long>();
 
     private:
         void ensure_remaining(std::uint64_t count);
@@ -64,6 +60,11 @@ namespace mcp {
         return { reinterpret_cast<const char*>(data.data()), length };
     }
 
+    template <>
+    [[nodiscard]] mcp::var_int reader::read<mcp::var_int>();
+
+    template <>
+    [[nodiscard]] mcp::var_long reader::read<mcp::var_long>();
 } // mcp
 
 #endif //MCPPROTOCOL_READER_HPP
