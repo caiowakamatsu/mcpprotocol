@@ -23,6 +23,7 @@ target_compile_options(mcpprotocol-lib PRIVATE
 
 add_executable(tests
         test/init.cpp
+        test/roundtrip.cpp
         test/serializer.cpp
         test/writer.cpp
         test/deserializer.cpp

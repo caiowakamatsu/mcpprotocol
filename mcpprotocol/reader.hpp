@@ -24,7 +24,7 @@ namespace mcp {
         [[nodiscard]] T read() = delete;
 
         template <typename T>
-            requires std::floating_point<T> || std::integral<T>
+        requires std::floating_point<T> || std::integral<T>
         [[nodiscard]] T read() {
             if constexpr (sizeof(T) == 1) {
                 return std::bit_cast<T>(read_n(1)[0]);
@@ -38,6 +38,11 @@ namespace mcp {
             }
         }
 
+        template <>
+        [[nodiscard]] mcp::var_int read<mcp::var_int>();
+
+        template <>
+        [[nodiscard]] mcp::var_long read<mcp::var_long>();
 
     private:
         void ensure_remaining(std::uint64_t count);

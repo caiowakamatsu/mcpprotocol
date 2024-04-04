@@ -7,8 +7,10 @@
 #include "packet_frame.hpp"
 
 namespace mcp {
+
+
     template <mcp::version version>
-    struct versioned_protocol {
+    struct protocol {
         static std::vector<std::byte> serialize(mcp::outbound_packet_frame frame) {
             // this would eventually take "state" (to be able to do compression / encryption)
             auto data = std::vector<std::byte>();
@@ -19,10 +21,6 @@ namespace mcp {
 
             return data;
         }
-//        template <typename T>
-//        static void deserializer(T packet) {
-//            deserialize(packet);
-//        }
     };
 } // mcp
 

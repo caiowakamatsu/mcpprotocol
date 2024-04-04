@@ -7,16 +7,6 @@
 #include <mcpprotocol/packet_traits.hpp>
 
 namespace mcp {
-    template <typename UserData>
-    struct basic_network_state {
-        int counter = 0;
-        UserData user_data;
-    };
-
-    template <>
-    struct basic_network_state<void> {
-        int counter = 0;
-    };
 
     template <typename ...Converters>
     struct basic_deserializer {
