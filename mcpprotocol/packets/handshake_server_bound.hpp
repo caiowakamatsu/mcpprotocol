@@ -24,7 +24,7 @@ namespace mcp {
             writer.write(server_name);
             writer.write(server_port);
             writer.write(mcp::var_int(next_state));
-            state->next =
+            state->next = next_state == 1 ? stream_mode::status : stream_mode::login;
 
             return buffer;
         }

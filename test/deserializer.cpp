@@ -3,21 +3,6 @@
 #include <mcpprotocol/packet_base.hpp>
 #include <mcpprotocol/deserializer.hpp>
 
-template <auto Handler>
-struct fake_packet : mcp::packet_base<Handler> {
-    constexpr static std::uint32_t id = 0;
-
-    template <typename ...Converters>
-    static bool handle(auto base_handle, auto *state, std::string_view source) {
-        auto first_whitespace = 0;
-        while (*(source.begin() + ++first_whitespace) != ' ');
-        auto str = std::string(source.begin(), source.begin() + first_whitespace);
-        auto number = std::stoi(std::string(source.begin() + first_whitespace, source.end()));
-        fake_packet::handler(base_handle, str, number);
-        return true;
-    };
-};
-
 TEST_CASE("Initialization", "[deserializer]") {
 //    using deserializer = mcp::basic_deserializer;
 
