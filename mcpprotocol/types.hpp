@@ -20,5 +20,6 @@ namespace mcp {
     };
     struct var_long { std::int64_t value; };
 
+    struct uuid {  };
 }
 #endif //MCPPROTOCOL_TYPES_HPP

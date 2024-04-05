@@ -17,7 +17,7 @@ namespace mcp {
             auto writer = mcp::writer(buffer);
 
             constexpr auto id = var_int(Packet<0>::id);
-            const auto data = Packet<0>::serialize(&state, std::forward<decltype(args)>(args)...);
+            const auto data = Packet<0>::template serialize<Converters...>(&state, std::forward<decltype(args)>(args)...);
             const auto packet_length = var_int(data.size() + id.size_bytes());
 
             // SupPorT OlD VerSioN Of MiNeCraFt "iTS GoOd prActIce"

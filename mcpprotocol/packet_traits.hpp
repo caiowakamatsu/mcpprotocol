@@ -5,22 +5,22 @@
 
 namespace mcp::detail {
     template <typename SourceType, typename ...Converters>
-    struct get_type_impl;
+    struct get_type;
 
     template <typename SourceType, typename Converter, typename ...Converters>
-    struct get_type_impl<SourceType, Converter, Converters...> {
+    struct get_type<SourceType, Converter, Converters...> {
         using type = std::conditional_t<std::is_same_v<typename Converter::type_source, SourceType>,
                 Converter,
-                typename get_type_impl<SourceType, Converters...>::type>;
+                typename get_type<SourceType, Converters...>::type>;
     };
 
     template <typename SourceType>
-    struct get_type_impl<SourceType> {
+    struct get_type<SourceType> {
         using type = void;
     };
 
     template <typename SourceType, typename ...Converters>
-    using get_type = typename get_type_impl<SourceType, Converters...>::type;
+    using get_type_t = typename get_type<SourceType, Converters...>::type;
 
     template <typename T>
     struct base_class_of_function;

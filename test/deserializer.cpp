@@ -1,7 +1,6 @@
 #include <catch2/catch_all.hpp>
 
 #include <mcpprotocol/packet_base.hpp>
-#include <mcpprotocol/deserializer.hpp>
 
 TEST_CASE("Initialization", "[deserializer]") {
 //    using deserializer = mcp::basic_deserializer;
