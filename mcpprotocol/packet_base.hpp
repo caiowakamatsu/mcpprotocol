@@ -15,7 +15,7 @@ namespace mcp::detail {
             if constexpr (is_free_function) {
                 Handler(args...);
             } else {
-                (reinterpret_cast<detail::base_class_of_function<handle_t>::type*>(base)->*Handler)(args...);
+                (reinterpret_cast<detail::base_class_of_function<handle_t>::type*>(base)->*Handler)(std::forward<Args>(args)...);
             }
         }
     };

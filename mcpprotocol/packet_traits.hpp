@@ -30,6 +30,11 @@ namespace mcp::detail {
         using type = ClassType;
     };
 
+    template <typename ClassType, typename ReturnType, typename... Args>
+    struct base_class_of_function<ReturnType(ClassType::*)(Args...) const> {
+        using type = ClassType;
+    };
+
     template <typename... Packets>
     struct max_packet_id;
 

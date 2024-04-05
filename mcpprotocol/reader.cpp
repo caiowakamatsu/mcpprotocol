@@ -57,4 +57,8 @@ namespace mcp {
         return mcp::var_long(result);
     }
 
+    std::span<const std::byte> reader::remaining() const {
+        return {buffer.data() + cursor, buffer.size() - cursor};
+    }
+
 } // mcp

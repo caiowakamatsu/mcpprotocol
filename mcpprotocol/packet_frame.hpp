@@ -6,11 +6,6 @@
 #include <mcpprotocol/packet_traits.hpp>
 
 namespace mcp {
-    struct outbound_packet_frame {
-        std::uint32_t id;
-        std::vector<std::byte> data;
-    };
-
     struct packet_frame {
         std::uint32_t length;
     };
