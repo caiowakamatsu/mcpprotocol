@@ -12,7 +12,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 add_library(mcpprotocol-lib
-        mcpprotocol/serializer.cpp
         mcpprotocol/writer.cpp
         mcpprotocol/reader.cpp
 )
@@ -23,7 +22,7 @@ target_compile_options(mcpprotocol-lib PRIVATE
 
 add_executable(tests
         test/init.cpp
-        test/serializer.cpp
+        test/roundtrip.cpp
         test/writer.cpp
         test/deserializer.cpp
 )

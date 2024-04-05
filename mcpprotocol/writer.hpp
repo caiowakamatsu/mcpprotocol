@@ -6,6 +6,9 @@
 #include <concepts>
 #include <span>
 #include <vector>
+#include <string_view>
+#include <algorithm>
+#include <cstring>
 
 #include <mcpprotocol/types.hpp>
 

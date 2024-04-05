@@ -3,5 +3,5 @@
 #include <mcpprotocol/mcpprotocol.hpp>
 
 TEST_CASE("Basic", "[init]") {
-    using protocol = mcp::versioned_protocol<mcp::version::v765>;
+    using protocol = mcp::protocol<mcp::version::v765>;
 }
