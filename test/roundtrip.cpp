@@ -1,8 +1,6 @@
 #include <catch2/catch_all.hpp>
 
 #include <mcpprotocol/mcpprotocol.hpp>
-#include <mcpprotocol/network_state.hpp>
-#include <mcpprotocol/packets/handshake_server_bound.hpp>
 #include <mcpprotocol/packets/login_server_bound.hpp>
 
 TEST_CASE("Legacy Ping", "[roundtrip]") {
