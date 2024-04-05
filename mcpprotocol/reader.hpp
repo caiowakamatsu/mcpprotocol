@@ -9,6 +9,7 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <algorithm>
 
 #include <mcpprotocol/types.hpp>
 
