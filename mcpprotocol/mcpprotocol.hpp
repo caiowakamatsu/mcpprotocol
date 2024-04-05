@@ -2,7 +2,6 @@
 #define MCPPROTOCOL_MCPPROTOCOL_HPP
 
 #include "version.hpp"
-#include "packet_frame.hpp"
 #include "network_state.hpp"
 #include "writer.hpp"
 
