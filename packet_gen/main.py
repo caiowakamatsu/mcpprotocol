@@ -1,4 +1,5 @@
 import json
+import sys
 
 
 def type_lookup(str_rep):
@@ -103,12 +104,17 @@ def create_packet(name, target, data):
 
 
 def main():
+    stream_mode = sys.argv[1].lower()
+    packet_target = sys.argv[2].lower()
     packets = load_packets("packets.json")
-    for mode in packets:
-        for packet_name in packets[mode]["client"]:
-            print(create_packet(packet_name, "c", packets[mode]["client"][packet_name]))
-        for packet_name in packets[mode]["server"]:
-            print(create_packet(packet_name, "s", packets[mode]["server"][packet_name]))
+    file = "namespace mcp {\n"
+    for packet_name in packets[stream_mode][packet_target]:
+        packet_code = create_packet(packet_name, "c" if packet_target == "client" else "s",
+                                    packets[stream_mode][packet_target][packet_name])
+        for line in packet_code.split('\n'):
+            file += f"\t{line}\n"
+    file += "}"
+    print(file)
 
 
 if __name__ == '__main__':
