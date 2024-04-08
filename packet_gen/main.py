@@ -108,12 +108,17 @@ def main():
     packet_target = sys.argv[2].lower()
     packets = load_packets("packets.json")
     file = "namespace mcp {\n"
-    for packet_name in packets[stream_mode][packet_target]:
-        packet_code = create_packet(packet_name, "c" if packet_target == "client" else "s",
-                                    packets[stream_mode][packet_target][packet_name])
-        for line in packet_code.split('\n'):
-            file += f"\t{line}\n"
+    try:
+        for packet_name in packets[stream_mode][packet_target]:
+            packet_code = create_packet(packet_name, "c" if packet_target == "client" else "s",
+                                        packets[stream_mode][packet_target][packet_name])
+            for line in packet_code.split('\n'):
+                file += f"\t{line}\n"
+    except Exception:
+        pass
+
     file += "}"
+
     print(file)
 
 
