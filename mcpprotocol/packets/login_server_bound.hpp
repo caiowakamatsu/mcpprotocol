@@ -36,4 +36,6 @@ namespace mcp {
     };
 }
 
+#include "generated/login_server.inl"
+
 #endif //MCPPROTOCOL_LOGIN_SERVER_BOUND_HPP
