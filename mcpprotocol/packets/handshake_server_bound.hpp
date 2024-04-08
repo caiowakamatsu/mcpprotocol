@@ -60,4 +60,6 @@ namespace mcp {
     };
 }
 
+#include "generated/handshake_server.inl"
+
 #endif //MCPPROTOCOL_HANDSHAKE_SERVER_BOUND_HPP
