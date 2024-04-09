@@ -106,7 +106,7 @@ def create_packet(name, target, data):
 def main():
     stream_mode = sys.argv[1].lower()
     packet_target = sys.argv[2].lower()
-    packets = load_packets("packets.json")
+    packets = load_packets("packet_gen/packets.json")
     file = "namespace mcp {\n"
     try:
         for packet_name in packets[stream_mode][packet_target]:
