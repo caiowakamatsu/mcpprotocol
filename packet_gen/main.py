@@ -83,7 +83,11 @@ def write_deserialize_function(packet_name, target, fields):
             names.append(name)
             data += f"\t\t{write_deserialize_field(field[name], name)}\n"
 
-    data += f"\n\t\t{packet_name}_{target}::handler(base_handle, {', '.join(names)});\n"
+    if len(names) == 0:
+        data += f"\n\t\t{packet_name}_{target}::handler(base_handle);\n"
+    else:
+        data += f"\n\t\t{packet_name}_{target}::handler(base_handle, {', '.join(names)});\n"
+
     data += "\t}\n"
     return data
 

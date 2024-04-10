@@ -1,13 +1,23 @@
 {
   "login": {
     "client": {
-
+      "disconnect": [
+        0,
+        {"reason": "string"}
+      ],
+      "set_compression": [
+        3,
+        {"threshold": "varint"}
+      ]
     },
     "server": {
       "login_start": [
         0,
         {"player_name": "string"},
         {"uuid": "uuid"}
+      ],
+      "login_acknowledged": [
+        3
       ]
     }
   },

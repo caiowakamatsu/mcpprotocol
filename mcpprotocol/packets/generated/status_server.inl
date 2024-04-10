@@ -16,7 +16,7 @@ namespace mcp {
 			auto reader = mcp::reader(source);
 	
 	
-			status_request_s::handler(base_handle, );
+			status_request_s::handler(base_handle);
 		}
 	};
 	template <auto Handler>

@@ -25,4 +25,24 @@ namespace mcp {
 			login_start_s::handler(base_handle, player_name, uuid);
 		}
 	};
+	template <auto Handler>
+	struct login_acknowledged_s : public detail::packet_base<0x03, Handler> {
+		template <typename ...Converters>
+		static std::vector<std::byte> serialize(
+				auto *state) {
+			auto buffer = std::vector<std::byte>();
+			auto writer = mcp::writer(buffer);
+	
+	
+			return buffer;
+		}
+	
+		template <typename ...Converters>
+		static void handle(auto base_handle, auto *state, std::span<const std::byte> source) {
+			auto reader = mcp::reader(source);
+	
+	
+			login_acknowledged_s::handler(base_handle);
+		}
+	};
 }
