@@ -6,13 +6,11 @@ namespace mcp {
     struct status_status_response_c : public detail::packet_base<0x00, Handler> {
         template <typename ...Converters>
         static std::vector<std::byte> serialize(
-                std::string player_name,
-                detail::get_type_t<mcp::uuid, Converters...>::type_target uuid) {
+                std::string json_response) {
             auto buffer = std::vector<std::byte>();
             auto writer = mcp::writer(buffer);
 
-            writer.write(player_name);
-            detail::get_type_t<mcp::uuid, Converters...>::to(uuid, writer);
+            writer.write(json_response);
 
             return buffer;
         }
@@ -21,10 +19,33 @@ namespace mcp {
         static void handle(auto base_handle, std::span<const std::byte> source) {
             auto reader = mcp::reader(source);
 
-            auto player_name = reader.read<std::string>();
-            auto uuid = detail::get_type_t<mcp::uuid, Converters...>::from(reader);
+            const auto json_response = reader.read<std::string>();
 
-            status_status_response_c::handler(base_handle, player_name, uuid);
+            status_status_response_c::handler(base_handle, json_response);
+        }
+    };
+
+
+    template<auto Handler>
+    struct status_ping_response_c : public detail::packet_base<0x01, Handler> {
+        template <typename ...Converters>
+        static std::vector<std::byte> serialize(
+                std::uint64_t payload) {
+            auto buffer = std::vector<std::byte>();
+            auto writer = mcp::writer(buffer);
+
+            writer.write(payload);
+
+            return buffer;
+        }
+
+        template <typename ...Converters>
+        static void handle(auto base_handle, std::span<const std::byte> source) {
+            auto reader = mcp::reader(source);
+
+            const auto payload = reader.read<std::uint64_t>();
+
+            status_ping_response_c::handler(base_handle, payload);
         }
     };
 }
