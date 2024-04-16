@@ -5,6 +5,4 @@ namespace mcp {
 
 }
 
-#include "generated/config_server.inl"
-
 #endif //MCPPROTOCOL_CONFIG_CLIENT_BOUND_HPP

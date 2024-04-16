@@ -5,6 +5,4 @@ namespace mcp {
 
 }
 
-#include "generated/status_client.inl"
-
 #endif //MCPPROTOCOL_STATUS_CLIENT_BOUND_HPP

@@ -5,6 +5,4 @@ namespace mcp {
 
 }
 
-#include "generated/play_server.inl"
-
 #endif //MCPPROTOCOL_PLAY_SERVER_BOUND_HPP

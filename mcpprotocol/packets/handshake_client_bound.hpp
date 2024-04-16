@@ -5,6 +5,4 @@ namespace mcp {
 
 }
 
-#include "generated/login_client.inl"
-
 #endif //MCPPROTOCOL_HANDSHAkE_CLIENT_BOUND_HPP
