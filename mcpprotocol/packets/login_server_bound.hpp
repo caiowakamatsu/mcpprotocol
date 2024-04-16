@@ -1,6 +1,7 @@
 #ifndef MCPPROTOCOL_LOGIN_SERVER_BOUND_HPP
 #define MCPPROTOCOL_LOGIN_SERVER_BOUND_HPP
 
+#include <mcpprotocol/types.hpp>
 #include <mcpprotocol/packet_base.hpp>
 #include <mcpprotocol/reader.hpp>
 #include <mcpprotocol/writer.hpp>

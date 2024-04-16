@@ -1,6 +1,11 @@
 #ifndef MCPPROTOCOL_STATUS_CLIENT_BOUND_HPP
 #define MCPPROTOCOL_STATUS_CLIENT_BOUND_HPP
 
+#include <mcpprotocol/types.hpp>
+#include <mcpprotocol/packet_base.hpp>
+#include <mcpprotocol/reader.hpp>
+#include <mcpprotocol/writer.hpp>
+
 namespace mcp {
     template<auto Handler>
     struct status_status_response_c : public detail::packet_base<0x00, Handler> {

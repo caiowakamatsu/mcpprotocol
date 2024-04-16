@@ -21,5 +21,7 @@ namespace mcp {
     struct var_long { std::int64_t value; };
 
     struct uuid {  };
+
+    struct login_success_property { };
 }
 #endif //MCPPROTOCOL_TYPES_HPP
