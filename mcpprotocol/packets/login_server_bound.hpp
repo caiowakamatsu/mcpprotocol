@@ -12,7 +12,6 @@ namespace mcp {
     struct login_start_s : public detail::packet_base<0x00, Handler> {
         template <typename ...Converters>
         static std::vector<std::byte> serialize(
-                auto *state,
                 std::string player_name,
                 detail::get_type_t<mcp::uuid, Converters...>::type_target uuid) {
             auto buffer = std::vector<std::byte>();
@@ -25,7 +24,7 @@ namespace mcp {
         }
 
         template <typename ...Converters>
-        static void handle(auto base_handle, auto *state, std::span<const std::byte> source) {
+        static void handle(auto base_handle, std::span<const std::byte> source) {
             auto reader = mcp::reader(source);
 
             auto player_name = reader.read<std::string>();

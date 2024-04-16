@@ -12,7 +12,6 @@ namespace mcp {
     struct handshake_s : public detail::packet_base<0x00, Handler> {
         template <typename ...Converters>
         static std::vector<std::byte> serialize(
-                auto *state,
                 std::int32_t protocol_version,
                 std::string server_name,
                 std::uint16_t server_port,
@@ -24,19 +23,17 @@ namespace mcp {
             writer.write(server_name);
             writer.write(server_port);
             writer.write(mcp::var_int(next_state));
-            state->mode = next_state == 1 ? stream_mode::status : stream_mode::login;
 
             return buffer;
         }
 
         template <typename ...Converters>
-        static void handle(auto base_handle, auto *state, std::span<const std::byte> source) {
+        static void handle(auto base_handle, std::span<const std::byte> source) {
             auto reader = mcp::reader(source);
             const auto protocol_version = reader.read<mcp::var_int>().value;
             const auto server_name = reader.read<std::string>();
             const auto server_port = reader.read<std::uint16_t>();
             const auto next_state = reader.read<mcp::var_int>().value;
-            state->mode = next_state == 1 ? stream_mode::status : stream_mode::login;
             handshake_s::handler(base_handle, protocol_version, server_name, server_port, next_state);
         }
     };
@@ -53,7 +50,7 @@ namespace mcp {
         }
 
         template <typename ...Converters>
-        static void handle(auto base_handle, auto *state, std::span<const std::byte> source) {
+        static void handle(auto base_handle, std::span<const std::byte> source) {
             // and I'll break it here too! Should be fine...
             legacy_ping_s::handler(base_handle, source[0]);
         }
