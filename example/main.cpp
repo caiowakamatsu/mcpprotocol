@@ -28,6 +28,8 @@ void handle_ping_response(std::uint64_t payload) {
     std::cout << "Ping response: " << payload << std::endl;
 }
 int main() {
+    sockpp::initialize();
+
     std::cout << "Connecting to localhost" << std::endl;
     auto connection = connect_to_localhost();
 
