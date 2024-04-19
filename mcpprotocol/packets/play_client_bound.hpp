@@ -2220,8 +2220,8 @@ namespace mcp {
             UUID chat_session;
             std::int64_t public_key_expiry_time;
             mcp::var_int public_key_size;
-            std::vector<const std::byte> encoded_public_key;
-            std::vector<const std::byte> signature;
+            std::vector<std::byte> encoded_public_key;
+            std::vector<std::byte> signature;
         } initialize_chat;
         struct update_game_mode_t {
             bool active = false;

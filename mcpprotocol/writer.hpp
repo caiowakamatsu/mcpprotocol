@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cstring>
 #include <bitset>
+#include <cmath>
 
 #include <mcpprotocol/types.hpp>
 

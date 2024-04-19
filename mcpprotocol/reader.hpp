@@ -11,6 +11,7 @@
 #include <cstring>
 #include <algorithm>
 #include <bitset>
+#include <cmath>
 
 #include <mcpprotocol/types.hpp>
 
