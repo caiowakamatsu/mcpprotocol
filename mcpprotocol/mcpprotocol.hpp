@@ -86,7 +86,7 @@ namespace mcp {
                 reconstructed_stream.insert(reconstructed_stream.end(), state.previous_partial_packet.begin(), state.previous_partial_packet.end());
                 reconstructed_stream.insert(reconstructed_stream.end(), source.begin(), source.end());
 
-                auto reader = mcp::reader(source);
+                auto reader = mcp::reader(reconstructed_stream);
                 const auto length = reader.read<var_int>().value;
                 const auto id = reader.read<var_int>().value;
                 [[maybe_unused]] const auto _ = ((
