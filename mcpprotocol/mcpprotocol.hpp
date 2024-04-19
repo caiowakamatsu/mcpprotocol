@@ -79,6 +79,13 @@ namespace mcp {
             }
 
             void decode(auto &state, std::span<const std::byte> source) const {
+
+                // TODO: this can probably be faster with buffer reuse and raw memcpy
+                auto reconstructed_stream = std::vector<std::byte>();
+                reconstructed_stream.reserve(state.previous_partial_packet.size() + source.size());
+                reconstructed_stream.insert(reconstructed_stream.end(), state.previous_partial_packet.begin(), state.previous_partial_packet.end());
+                reconstructed_stream.insert(reconstructed_stream.end(), source.begin(), source.end());
+
                 auto reader = mcp::reader(source);
                 const auto length = reader.read<var_int>().value;
                 const auto id = reader.read<var_int>().value;
