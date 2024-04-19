@@ -5,18 +5,61 @@
 #include "network_state.hpp"
 #include "writer.hpp"
 
+#include "packets/config_client_bound.hpp"
+#include "packets/config_server_bound.hpp"
 #include "packets/handshake_server_bound.hpp"
+#include "packets/handshake_client_bound.hpp"
+#include "packets/login_client_bound.hpp"
+#include "packets/login_server_bound.hpp"
+#include "packets/play_client_bound.hpp"
+#include "packets/play_server_bound.hpp"
+#include "packets/status_client_bound.hpp"
+#include "packets/status_server_bound.hpp"
 
 namespace mcp {
+    struct packet_frame {
+        std::uint32_t id;
+        std::vector<std::byte> data;
+    };
+
     template <mcp::version version, typename ...Converters>
     struct protocol {
+        template <template <auto _> typename Packet>
+        [[nodiscard]] static packet_frame write(auto &&...args) {
+            return {
+                .id = Packet<0>::id,
+                .data = Packet<0>::template serialize<Converters...>(std::forward<decltype(args)>(args)...)
+            };
+        }
+
+        template <template <auto _> typename Packet>
+        [[nodiscard]] static std::vector<std::byte> encode(auto &state, packet_frame &&frame) {
+            auto buffer = std::vector<std::byte>();
+            auto writer = mcp::writer(buffer);
+
+            const auto id = var_int(static_cast<std::int32_t>(frame.id));
+            const auto packet_length = var_int(static_cast<std::int32_t>(frame.data.size()) + id.size_bytes());
+
+            // SupPorT OlD VerSioN Of MiNeCraFt "iTS GoOd prActIce"
+            // - Statements made by the utterly deranged
+            if constexpr (Packet<0>::id == 0xFE) {
+                writer.write(std::uint8_t(id.value));
+                writer.write(frame.data);
+                return buffer;
+            }
+
+            writer.write(packet_length);
+            writer.write(id);
+            writer.write(frame.data);
+        }
+
         template <template <auto _> typename Packet>
         [[nodiscard]] static std::vector<std::byte> serialize(auto &state, auto &&...args) {
             auto buffer = std::vector<std::byte>();
             auto writer = mcp::writer(buffer);
 
             constexpr auto id = var_int(Packet<0>::id);
-            const auto data = Packet<0>::template serialize<Converters...>(&state, std::forward<decltype(args)>(args)...);
+            const auto data = Packet<0>::template serialize<Converters...>(std::forward<decltype(args)>(args)...);
             const auto packet_length = var_int(data.size() + id.size_bytes());
 
             // SupPorT OlD VerSioN Of MiNeCraFt "iTS GoOd prActIce"
@@ -50,7 +93,7 @@ namespace mcp {
                 const auto id = reader.read<var_int>().value;
                 [[maybe_unused]] const auto _ = ((
                         Packets::id == id &&
-                                ((Packets::template handle<Converters...>(get_member_base(Packets::id), &state, reader.remaining())), true))
+                                ((Packets::template handle<Converters...>(get_member_base(Packets::id), reader.remaining())), true))
                         || ...);
             }
 

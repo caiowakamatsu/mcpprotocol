@@ -21,18 +21,14 @@ TEST_CASE("Legacy Ping", "[roundtrip]") {
 
     auto network_state = mcp::basic_network_state<void>();
 
-    REQUIRE(network_state.mode == mcp::stream_mode::handshaking);
     const auto bytes = protocol::serialize<mcp::handshake_s>(network_state,
                                                              std::int32_t(765),
                                                              std::string("localhost"),
                                                              std::uint16_t(25565),
                                                              std::uint8_t(1));
-    REQUIRE(network_state.mode == mcp::stream_mode::status);
 
     network_state = mcp::basic_network_state<void>();
-    REQUIRE(network_state.mode == mcp::stream_mode::handshaking);
     test_deserializer.decode(network_state, bytes);
-    REQUIRE(network_state.mode == mcp::stream_mode::status);
 }
 
 TEST_CASE("Conversion Test", "[roundtrip]") {

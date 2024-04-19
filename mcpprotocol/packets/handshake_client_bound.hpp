@@ -1,1 +1,8 @@
-// Nothing exists here, this file only exists for consistency
+#ifndef MCPPROTOCOL_HANDSHAkE_CLIENT_BOUND_HPP
+#define MCPPROTOCOL_HANDSHAkE_CLIENT_BOUND_HPP
+
+namespace mcp {
+
+}
+
+#endif //MCPPROTOCOL_HANDSHAkE_CLIENT_BOUND_HPP
