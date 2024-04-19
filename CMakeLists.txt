@@ -10,7 +10,6 @@ FetchContent_Declare(
         GIT_TAG        v3.4.0
 )
 set(SOCKPP_BUILD_STATIC ON)
-set(SOCKPP_BUILD_SHARED OFF)
 FetchContent_Declare(
         sockpp
         GIT_REPOSITORY https://github.com/fpagliughi/sockpp.git
