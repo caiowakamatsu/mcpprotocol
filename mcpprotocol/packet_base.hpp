@@ -2,6 +2,7 @@
 #define MCPPROTOCOL_PACKET_BASE_HPP
 
 #include <mcpprotocol/packet_traits.hpp>
+#include <functional>
 
 #include <tuple>
 
