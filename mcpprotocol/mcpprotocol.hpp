@@ -5,7 +5,16 @@
 #include "network_state.hpp"
 #include "writer.hpp"
 
+#include "packets/config_client_bound.hpp"
+#include "packets/config_server_bound.hpp"
 #include "packets/handshake_server_bound.hpp"
+#include "packets/handshake_client_bound.hpp"
+#include "packets/login_client_bound.hpp"
+#include "packets/login_server_bound.hpp"
+#include "packets/play_client_bound.hpp"
+#include "packets/play_server_bound.hpp"
+#include "packets/status_client_bound.hpp"
+#include "packets/status_server_bound.hpp"
 
 namespace mcp {
     struct packet_frame {
@@ -50,7 +59,7 @@ namespace mcp {
             auto writer = mcp::writer(buffer);
 
             constexpr auto id = var_int(Packet<0>::id);
-            const auto data = Packet<0>::template serialize<Converters...>(&state, std::forward<decltype(args)>(args)...);
+            const auto data = Packet<0>::template serialize<Converters...>(std::forward<decltype(args)>(args)...);
             const auto packet_length = var_int(data.size() + id.size_bytes());
 
             // SupPorT OlD VerSioN Of MiNeCraFt "iTS GoOd prActIce"
@@ -91,7 +100,7 @@ namespace mcp {
                 const auto id = reader.read<var_int>().value;
                 [[maybe_unused]] const auto _ = ((
                         Packets::id == id &&
-                                ((Packets::template handle<Converters...>(get_member_base(Packets::id), &state, reader.remaining())), true))
+                                ((Packets::template handle<Converters...>(get_member_base(Packets::id), reader.remaining())), true))
                         || ...);
             }
 
