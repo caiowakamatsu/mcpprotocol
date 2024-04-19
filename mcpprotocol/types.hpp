@@ -27,5 +27,19 @@ namespace mcp {
     struct text_component { };
 
     struct nbt { };
+
+    struct position { };
+
+    struct command_node { };
+
+    struct slot {};
+
+    struct chunk_data {};
+
+    struct particle_data {};
+
+    struct chunk_light_data {};
+
+    struct entity_metadata {};
 }
 #endif //MCPPROTOCOL_TYPES_HPP
