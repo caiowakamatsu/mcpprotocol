@@ -65,13 +65,13 @@ int main() {
     while (!handler.ready) {
         const auto bytes_read = connection.read(read_buffer.data(), read_buffer.size());
 
-        if (
+        if (bytes_read > 0 || (bytes_read < 0 &&
 #ifdef _WIN32
         bytes_read == WSAEWOULDBLOCK
 #else
         bytes_read == EAGAIN || bytes_read == EWOULDBLOCK
 #endif
-                ) {
+        )) {
             deserializer.decode(network_state, {read_buffer.data(), static_cast<std::size_t>(bytes_read)});
         }
     }
