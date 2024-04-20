@@ -4,6 +4,7 @@
 #include "version.hpp"
 #include "network_state.hpp"
 #include "writer.hpp"
+#include "compression.hpp"
 
 #include "packets/config_client_bound.hpp"
 #include "packets/config_server_bound.hpp"
@@ -108,16 +109,30 @@ namespace mcp {
                         break;
                     }
 
-                    // We need to store the old cursor so we can figure out the size of the var int
-                    // Why can't we figure out the size? Because mojank is stupid and varints dont
-                    // need to be their minimum size and can be encoded in a non-optimal way. :)
-                    const auto old = reader.save_cursor();
-                    const auto id = reader.read<var_int>();
-                    // maybe_length contains the size of the id AND data
-                    const auto data_length = maybe_length->value - (reader.save_cursor() - old);
+                    auto packet_reader = mcp::reader(reader.read_n(maybe_length->value));
+                    if (state.compression_threshold >= 0) {
+                        auto decompressed_length = reader.read<var_int>().value;
+
+                        auto decompressed_data = mcp::decompress(
+                                packet_reader.remaining(),
+                                decompressed_length);
+
+                        packet_reader = mcp::reader(decompressed_data);
+                    }
+
+                    const auto id = packet_reader.read<var_int>();
+
+                    // compile-time fold expression, equivalent to:
+                    /*
+                     * for constexpr (packet_t in Packets...) {
+                     *      if (packet_t::id == id.value) {
+                     *          Packets::handle<Converters...>(get_member_base(packet_t::id), packet_reader.remaining())
+                     *      }
+                     * }
+                     */
                     [[maybe_unused]] const auto _ = ((
                             Packets::id == id.value &&
-                            ((Packets::template handle<Converters...>(get_member_base(Packets::id), reader.read_n(data_length))), true))
+                            ((Packets::template handle<Converters...>(get_member_base(Packets::id), packet_reader.remaining())), true))
                             || ...);
                 }
             }
