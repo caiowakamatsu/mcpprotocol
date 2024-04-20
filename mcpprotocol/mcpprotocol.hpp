@@ -110,14 +110,18 @@ namespace mcp {
                     }
 
                     auto packet_reader = mcp::reader(reader.read_n(maybe_length->value));
+                    std::vector<std::byte> decompressed_data; // pre-declare to extend the lifetime to the whole packet parsing
+
                     if (state.compression_threshold >= 0) {
                         auto decompressed_length = reader.read<var_int>().value;
 
-                        auto decompressed_data = mcp::decompress(
-                                packet_reader.remaining(),
-                                decompressed_length);
+                        if (decompressed_length >= state.compression_threshold) {  // decompressed_length should be set to 0 for uncompressed packets
+                            decompressed_data = mcp::decompress(
+                                    packet_reader.remaining(),
+                                    decompressed_length);
 
-                        packet_reader = mcp::reader(decompressed_data);
+                            packet_reader = mcp::reader(decompressed_data);
+                        }
                     }
 
                     const auto id = packet_reader.read<var_int>();
