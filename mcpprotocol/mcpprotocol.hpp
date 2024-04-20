@@ -15,6 +15,7 @@
 #include "packets/play_server_bound.hpp"
 #include "packets/status_client_bound.hpp"
 #include "packets/status_server_bound.hpp"
+#include <iostream>
 
 namespace mcp {
     struct packet_frame {
@@ -107,12 +108,17 @@ namespace mcp {
                         break;
                     }
 
-                    const auto id = reader.read<var_int>().value;
+                    // We need to store the old cursor so we can figure out the size of the var int
+                    // Why can't we figure out the size? Because mojank is stupid and varints dont
+                    // need to be their minimum size and can be encoded in a non-optimal way. :)
+                    const auto old = reader.save_cursor();
+                    const auto id = reader.read<var_int>();
+                    // maybe_length contains the size of the id AND data
+                    const auto data_length = maybe_length->value - (reader.save_cursor() - old);
                     [[maybe_unused]] const auto _ = ((
-                            Packets::id == id &&
-                            ((Packets::template handle<Converters...>(get_member_base(Packets::id), reader.read_n(maybe_length->value))), true))
+                            Packets::id == id.value &&
+                            ((Packets::template handle<Converters...>(get_member_base(Packets::id), reader.read_n(data_length))), true))
                             || ...);
-                    reader.restore_cursor(reader.save_cursor() - 1);
                 }
             }
 
