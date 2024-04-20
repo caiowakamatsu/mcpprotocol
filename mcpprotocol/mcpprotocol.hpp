@@ -94,6 +94,7 @@ namespace mcp {
                 reconstructed_stream.reserve(state.previous_partial_packet.size() + source.size());
                 reconstructed_stream.insert(reconstructed_stream.end(), state.previous_partial_packet.begin(), state.previous_partial_packet.end());
                 reconstructed_stream.insert(reconstructed_stream.end(), source.begin(), source.end());
+                state.previous_partial_packet.clear();
 
                 auto reader = mcp::reader(reconstructed_stream);
                 while (true) {
@@ -102,7 +103,6 @@ namespace mcp {
                     if(!maybe_length.has_value() || maybe_length.value().value > reader.remaining().size()) {
                         // we have an incomplete packet here
                         reader.restore_cursor(packet_start);
-                        state.previous_partial_packet.clear();
                         state.previous_partial_packet.insert(state.previous_partial_packet.end(), reader.remaining().begin(), reader.remaining().end());
                         break;
                     }
