@@ -27,6 +27,13 @@
     return connection;
 }
 
+struct status_response_handler {
+    bool wants_ping = false;
+    void handle(std::string json_response) {
+        std::cout << "Status response: " << json_response << std::endl;
+        wants_ping = true;
+    }
+};
 void handle_status_response(std::string json_response) {
     std::cout << "Status response: " << json_response << std::endl;
 }
@@ -54,25 +61,38 @@ int main() {
                                                        1);
     connection.write(bytes.data(), bytes.size());
 
+    auto status_handler = status_response_handler();
     auto handler = ping_response_handler();
 
     auto deserializer = protocol::deserializer<
-            mcp::status_status_response_c<handle_status_response>,
-            mcp::status_ping_response_c<&ping_response_handler::handle>>(&handler);
+            mcp::status_status_response_c<&status_response_handler::handle>,
+            mcp::status_ping_response_c<&ping_response_handler::handle>>(&status_handler, &handler);
 
     auto read_buffer = std::vector<std::byte>(8);
 
+    bytes = protocol::serialize<mcp::status_status_request_s>(network_state);
+    connection.write(bytes.data(), bytes.size());
+
     while (!handler.ready) {
+        if (status_handler.wants_ping) {
+            bytes = protocol::serialize<mcp::status_ping_request_s>(network_state, 123456789);
+            connection.write(bytes.data(), bytes.size());
+            status_handler.wants_ping = false;
+        }
+
         const auto bytes_read = connection.read(read_buffer.data(), read_buffer.size());
 
-        if (bytes_read > 0 || (bytes_read < 0 &&
+        if (bytes_read > 0) {
+            deserializer.decode(network_state, {read_buffer.data(), static_cast<std::size_t>(bytes_read)});
+        } else if (!(
 #ifdef _WIN32
-        bytes_read == WSAEWOULDBLOCK
+                WSAGetLastError() == WSAEWOULDBLOCK
 #else
-        bytes_read == EAGAIN || bytes_read == EWOULDBLOCK
+                errno == EAGAIN || errno == EWOULDBLOCK
 #endif
         )) {
-            deserializer.decode(network_state, {read_buffer.data(), static_cast<std::size_t>(bytes_read)});
+            std::cerr << "Error reading from socket" << std::endl;
+            break;
         }
     }
 
