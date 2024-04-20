@@ -28,9 +28,6 @@ namespace mcp {
         auto read     = std::uint8_t(0);
 
         do {
-            if (num_read >= 5) {
-                throw mcp::varint_read_exception::too_long();
-            }
 
             read                = static_cast<std::uint8_t>(buffer[cursor]);
             std::uint32_t value = (read & 0b01111111);
@@ -38,10 +35,6 @@ namespace mcp {
 
             num_read++;
             cursor++;
-
-//            if (cursor >= buffer.size()) {
-//                throw mcp::varint_read_exception::partial_read();
-//            }
         } while ((read & 0b10000000) != 0);
 
         return mcp::var_int(result);
