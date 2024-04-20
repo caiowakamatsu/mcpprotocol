@@ -7,6 +7,13 @@
 #include <string>
 #include <thread>
 
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <sys/socket.h>
+#include <unistd.h>
+#endif
+
 [[nodiscard]] sockpp::tcp_connector connect_to_localhost() {
     auto connection = sockpp::tcp_connector();
     constexpr auto port = 25565;
@@ -57,7 +64,16 @@ int main() {
 
     while (!handler.ready) {
         const auto bytes_read = connection.read(read_buffer.data(), read_buffer.size());
-        deserializer.decode(network_state, {read_buffer.data(), static_cast<std::size_t>(bytes_read)});
+
+        if (
+#ifdef _WIN32
+        bytes_read == WSAEWOULDBLOCK
+#else
+        bytes_read == EAGAIN || bytes_read == EWOULDBLOCK
+#endif
+                ) {
+            deserializer.decode(network_state, {read_buffer.data(), static_cast<std::size_t>(bytes_read)});
+        }
     }
 
     connection.close();
