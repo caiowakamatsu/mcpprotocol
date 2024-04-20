@@ -112,6 +112,7 @@ namespace mcp {
                             Packets::id == id &&
                             ((Packets::template handle<Converters...>(get_member_base(Packets::id), reader.read_n(maybe_length->value))), true))
                             || ...);
+                    reader.restore_cursor(reader.save_cursor() - 1);
                 }
             }
 
