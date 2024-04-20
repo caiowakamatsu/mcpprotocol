@@ -110,7 +110,7 @@ namespace mcp {
                     const auto id = reader.read<var_int>().value;
                     [[maybe_unused]] const auto _ = ((
                             Packets::id == id &&
-                            ((Packets::template handle<Converters...>(get_member_base(Packets::id), reader.remaining())), true))
+                            ((Packets::template handle<Converters...>(get_member_base(Packets::id), reader.read_n(maybe_length->value))), true))
                             || ...);
                 }
             }

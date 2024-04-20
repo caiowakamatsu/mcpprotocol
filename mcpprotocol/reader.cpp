@@ -17,7 +17,7 @@ namespace mcp {
     }
 
     void reader::ensure_remaining(std::uint64_t count) {
-        const auto remaining = buffer.size() - cursor;
+        const auto remaining = buffer.size() - cursor + 1;
         if (count > remaining) {
             throw std::runtime_error("tried to read more bytes than available");
         }
