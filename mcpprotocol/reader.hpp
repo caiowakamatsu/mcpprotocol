@@ -76,6 +76,9 @@ namespace mcp {
 
         [[nodiscard]] std::span<const std::byte> remaining() const;
 
+        [[nodiscard]] uint64_t save_cursor() const { return cursor; }
+        void restore_cursor(uint64_t new_cursor) { cursor = new_cursor; }
+
     private:
         void ensure_remaining(std::uint64_t count);
 
