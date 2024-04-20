@@ -1,0 +1,45 @@
+{
+  "login": {
+    "client": {
+      "disconnect": [
+        0,
+        {"reason": "string"}
+      ],
+      "set_compression": [
+        3,
+        {"threshold": "varint"}
+      ]
+    },
+    "server": {
+      "login_start": [
+        0,
+        {"player_name": "string"},
+        {"uuid": "uuid"}
+      ],
+      "login_acknowledged": [
+        3
+      ]
+    }
+  },
+  "status": {
+    "client": {
+      "status_response": [
+        0,
+        {"json_response": "string"}
+      ],
+      "ping_response": [
+        1,
+        {"payload": "i64"}
+      ]
+    },
+    "server": {
+      "status_request": [
+        0
+      ],
+      "ping_request": [
+        1,
+        {"payload": "i64"}
+      ]
+    }
+  }
+}

@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <bitset>
 #include <cmath>
+#include <optional>
 
 #include <mcpprotocol/types.hpp>
 
@@ -75,6 +76,11 @@ namespace mcp {
         }
 
         [[nodiscard]] std::span<const std::byte> remaining() const;
+
+        [[nodiscard]] uint64_t save_cursor() const { return cursor; }
+        void restore_cursor(uint64_t new_cursor) { cursor = new_cursor; }
+
+        [[nodiscard]] std::optional<mcp::var_int> try_read_varint();
 
     private:
         void ensure_remaining(std::uint64_t count);

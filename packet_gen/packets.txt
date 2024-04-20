@@ -1,0 +1,13 @@
+Login
+c 0x00 - Generated
+c 0x01 - Manual
+c 0x02 - Manual
+c 0x03 - Generated
+c 0x04 - Manual
+
+s 0x00 - Generated
+s 0x01 - Manual
+s 0x02 - Manual
+s 0x03 - Generated
+
+

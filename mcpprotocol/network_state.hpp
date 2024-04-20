@@ -16,12 +16,14 @@ namespace mcp {
     template <typename UserData>
     struct basic_network_state {
         stream_mode mode = stream_mode::handshaking;
+        std::vector<std::byte> previous_partial_packet;
         UserData user_data;
     };
 
     template <>
     struct basic_network_state<void> {
         stream_mode mode = stream_mode::handshaking;
+        std::vector<std::byte> previous_partial_packet;
     };
 }
 

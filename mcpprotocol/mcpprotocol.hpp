@@ -15,6 +15,7 @@
 #include "packets/play_server_bound.hpp"
 #include "packets/status_client_bound.hpp"
 #include "packets/status_server_bound.hpp"
+#include <iostream>
 
 namespace mcp {
     struct packet_frame {
@@ -88,13 +89,37 @@ namespace mcp {
             }
 
             void decode(auto &state, std::span<const std::byte> source) const {
-                auto reader = mcp::reader(source);
-                const auto length = reader.read<var_int>().value;
-                const auto id = reader.read<var_int>().value;
-                [[maybe_unused]] const auto _ = ((
-                        Packets::id == id &&
-                                ((Packets::template handle<Converters...>(get_member_base(Packets::id), reader.remaining())), true))
-                        || ...);
+
+                // TODO: this can probably be faster with buffer reuse and raw memcpy
+                auto reconstructed_stream = std::vector<std::byte>();
+                reconstructed_stream.reserve(state.previous_partial_packet.size() + source.size());
+                reconstructed_stream.insert(reconstructed_stream.end(), state.previous_partial_packet.begin(), state.previous_partial_packet.end());
+                reconstructed_stream.insert(reconstructed_stream.end(), source.begin(), source.end());
+                state.previous_partial_packet.clear();
+
+                auto reader = mcp::reader(reconstructed_stream);
+                while (true) {
+                    const auto packet_start = reader.save_cursor();
+                    const auto maybe_length = reader.try_read_varint();
+                    if(!maybe_length.has_value() || maybe_length.value().value > reader.remaining().size()) {
+                        // we have an incomplete packet here
+                        reader.restore_cursor(packet_start);
+                        state.previous_partial_packet.insert(state.previous_partial_packet.end(), reader.remaining().begin(), reader.remaining().end());
+                        break;
+                    }
+
+                    // We need to store the old cursor so we can figure out the size of the var int
+                    // Why can't we figure out the size? Because mojank is stupid and varints dont
+                    // need to be their minimum size and can be encoded in a non-optimal way. :)
+                    const auto old = reader.save_cursor();
+                    const auto id = reader.read<var_int>();
+                    // maybe_length contains the size of the id AND data
+                    const auto data_length = maybe_length->value - (reader.save_cursor() - old);
+                    [[maybe_unused]] const auto _ = ((
+                            Packets::id == id.value &&
+                            ((Packets::template handle<Converters...>(get_member_base(Packets::id), reader.read_n(data_length))), true))
+                            || ...);
+                }
             }
 
         private:
