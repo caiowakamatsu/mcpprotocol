@@ -23,10 +23,14 @@
 void handle_status_response(std::string json_response) {
     std::cout << "Status response: " << json_response << std::endl;
 }
+struct ping_response_handler {
+    bool ready = false;
+    void handle(std::uint64_t payload) {
+        std::cout << "Ping response: " << payload << std::endl;
+        ready = true;
+    }
+};
 
-void handle_ping_response(std::uint64_t payload) {
-    std::cout << "Ping response: " << payload << std::endl;
-}
 int main() {
     sockpp::initialize();
 
@@ -43,23 +47,18 @@ int main() {
                                                        1);
     connection.write(bytes.data(), bytes.size());
 
+    auto handler = ping_response_handler();
+
     auto deserializer = protocol::deserializer<
             mcp::status_status_response_c<handle_status_response>,
-            mcp::status_ping_response_c<handle_ping_response>>();
+            mcp::status_ping_response_c<&ping_response_handler::handle>>(&handler);
 
-    auto read_buffer = std::vector<std::byte>(1024);
+    auto read_buffer = std::vector<std::byte>(8);
 
-    bytes = protocol::serialize<mcp::status_status_request_s>(network_state);
-    connection.write(bytes.data(), bytes.size());
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    connection.read(read_buffer.data(), read_buffer.size());
-    deserializer.decode(network_state, read_buffer);
-
-    bytes = protocol::serialize<mcp::status_ping_request_s>(network_state, 123456789);
-    connection.write(bytes.data(), bytes.size());
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    connection.read(read_buffer.data(), read_buffer.size());
-    deserializer.decode(network_state, read_buffer);
+    while (!handler.ready) {
+        connection.read(read_buffer.data(), read_buffer.size());
+        deserializer.decode(network_state, read_buffer);
+    }
 
     connection.close();
 }
