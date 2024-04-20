@@ -1,8 +1,14 @@
+##################
+## PROJECT SETUP #
+##################
 cmake_minimum_required(VERSION 3.26)
 project(mcpprotocol CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
+#################
+# DEPENDENCIES #
+#################
 include(FetchContent)
 FetchContent_Declare(
         Catch2
@@ -22,6 +28,9 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2 sockpp zlibstatic)
 
+################
+# MAIN LIBRARY #
+################
 add_library(mcpprotocol-lib
         mcpprotocol/writer.cpp
         mcpprotocol/reader.cpp
@@ -32,6 +41,9 @@ target_compile_options(mcpprotocol-lib PRIVATE
 )
 target_link_libraries(mcpprotocol-lib PRIVATE zlibstatic)
 
+##########
+# TESTS #
+##########
 add_executable(tests
         test/init.cpp
         test/roundtrip.cpp
@@ -40,6 +52,9 @@ add_executable(tests
 )
 target_link_libraries(tests PRIVATE mcpprotocol-lib Catch2::Catch2WithMain)
 
+###########
+# EXAMPLE #
+###########
 add_executable(mcpprotocol-example
         example/main.cpp
 )
