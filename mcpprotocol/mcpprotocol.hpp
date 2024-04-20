@@ -96,12 +96,23 @@ namespace mcp {
                 reconstructed_stream.insert(reconstructed_stream.end(), source.begin(), source.end());
 
                 auto reader = mcp::reader(reconstructed_stream);
-                const auto length = reader.read<var_int>().value;
-                const auto id = reader.read<var_int>().value;
-                [[maybe_unused]] const auto _ = ((
-                        Packets::id == id &&
-                                ((Packets::template handle<Converters...>(get_member_base(Packets::id), reader.remaining())), true))
-                        || ...);
+                while (true) {
+                    const auto packet_start = reader.save_cursor();
+                    const auto maybe_length = reader.try_read_varint();
+                    if(!maybe_length.has_value() || maybe_length.value().value > reader.remaining().size()) {
+                        // we have an incomplete packet here
+                        reader.restore_cursor(packet_start);
+                        state.previous_partial_packet.clear();
+                        state.previous_partial_packet.insert(state.previous_partial_packet.end(), reader.remaining().begin(), reader.remaining().end());
+                        break;
+                    }
+
+                    const auto id = reader.read<var_int>().value;
+                    [[maybe_unused]] const auto _ = ((
+                            Packets::id == id &&
+                            ((Packets::template handle<Converters...>(get_member_base(Packets::id), reader.remaining())), true))
+                            || ...);
+                }
             }
 
         private:
