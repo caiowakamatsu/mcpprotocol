@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <optional>
 
 #include "reader.hpp"
 #include <mcpprotocol/exceptions.hpp>
@@ -66,6 +67,26 @@ namespace mcp {
 
     std::span<const std::byte> reader::remaining() const {
         return {buffer.data() + cursor, buffer.size() - cursor};
+    }
+
+    std::optional<mcp::var_int> reader::try_read_varint() {
+        auto num_read = std::uint32_t(0);
+        auto result   = std::int32_t(0);
+        auto read     = std::uint8_t(0);
+
+        do {
+            if (cursor >= buffer.size()) { return std::nullopt; /* incomplete read */}
+            if (num_read > 5) { throw mcp::varint_read_exception::too_long(); };
+
+            read                = static_cast<std::uint8_t>(buffer[cursor]);
+            std::uint32_t value = (read & 0b01111111);
+            result |= std::bit_cast<std::int32_t>((value << (7 * num_read)));
+
+            num_read++;
+            cursor++;
+        } while ((read & 0b10000000) != 0);
+
+        return mcp::var_int(result);
     }
 
 } // mcp
