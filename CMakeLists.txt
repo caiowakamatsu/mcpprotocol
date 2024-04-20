@@ -15,7 +15,12 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/fpagliughi/sockpp.git
         GIT_TAG        v1.0.0
 )
-FetchContent_MakeAvailable(Catch2 sockpp)
+FetchContent_Declare(
+        zlibstatic
+        GIT_REPOSITORY https://github.com/zlib-ng/zlib-ng
+        GIT_TAG        2.1.6
+)
+FetchContent_MakeAvailable(Catch2 sockpp zlibstatic)
 
 add_library(mcpprotocol-lib
         mcpprotocol/writer.cpp
@@ -25,6 +30,7 @@ target_include_directories(mcpprotocol-lib PUBLIC .)
 target_compile_options(mcpprotocol-lib PRIVATE
         $<IF:$<CXX_COMPILER_ID:MSVC>,/W4 /WX,-Wall -Wextra -pedantic -Werror>
 )
+target_link_libraries(mcpprotocol-lib PRIVATE zlibstatic)
 
 add_executable(tests
         test/init.cpp
@@ -34,7 +40,7 @@ add_executable(tests
 )
 target_link_libraries(tests PRIVATE mcpprotocol-lib Catch2::Catch2WithMain)
 
-add_executable(example
+add_executable(mcpprotocol-example
         example/main.cpp
 )
-target_link_libraries(example PRIVATE mcpprotocol-lib sockpp-static)
+target_link_libraries(mcpprotocol-example PRIVATE mcpprotocol-lib sockpp-static)
