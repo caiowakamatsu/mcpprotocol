@@ -56,8 +56,8 @@ int main() {
     auto read_buffer = std::vector<std::byte>(8);
 
     while (!handler.ready) {
-        connection.read(read_buffer.data(), read_buffer.size());
-        deserializer.decode(network_state, read_buffer);
+        const auto bytes_read = connection.read(read_buffer.data(), read_buffer.size());
+        deserializer.decode(network_state, {read_buffer.data(), static_cast<std::size_t>(bytes_read)});
     }
 
     connection.close();
