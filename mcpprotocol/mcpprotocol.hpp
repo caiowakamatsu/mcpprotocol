@@ -4,6 +4,7 @@
 #include "version.hpp"
 #include "network_state.hpp"
 #include "writer.hpp"
+#include "compression.hpp"
 
 #include "packets/config_client_bound.hpp"
 #include "packets/config_server_bound.hpp"
@@ -71,9 +72,28 @@ namespace mcp {
                 return buffer;
             }
 
-            writer.write(packet_length);
-            writer.write(id);
-            writer.write(data);
+            if (state.compression_threshold.has_value()) {
+                if (packet_length.value >= state.compression_threshold.value()) {
+                    auto uncompressed_buffer = std::vector<std::byte>();
+                    auto compression_writer = mcp::writer(uncompressed_buffer);
+                    compression_writer.write(id);
+                    compression_writer.write(data);
+                    auto compressed_buffer = mcp::compress(uncompressed_buffer);
+
+                    writer.write(var_int(compressed_buffer.size() + packet_length.size_bytes()));
+                    writer.write(packet_length);
+                    writer.write(compressed_buffer);
+                } else {
+                    writer.write(var_int(packet_length.value + 1 /* +1 for the 0 byte of compressed length */));
+                    writer.write(var_int(0));
+                    writer.write(id);
+                    writer.write(data);
+                }
+            } else {
+                writer.write(packet_length);
+                writer.write(id);
+                writer.write(data);
+            }
 
             return buffer;
         }
@@ -108,16 +128,34 @@ namespace mcp {
                         break;
                     }
 
-                    // We need to store the old cursor so we can figure out the size of the var int
-                    // Why can't we figure out the size? Because mojank is stupid and varints dont
-                    // need to be their minimum size and can be encoded in a non-optimal way. :)
-                    const auto old = reader.save_cursor();
-                    const auto id = reader.read<var_int>();
-                    // maybe_length contains the size of the id AND data
-                    const auto data_length = maybe_length->value - (reader.save_cursor() - old);
+                    auto packet_reader = mcp::reader(reader.read_n(maybe_length->value));
+                    std::vector<std::byte> decompressed_data; // pre-declare to extend the lifetime to the whole packet parsing
+
+                    if (state.compression_threshold.has_value()) {
+                        auto decompressed_length = packet_reader.read<var_int>().value;
+
+                        if (decompressed_length >= state.compression_threshold.value()) {  // decompressed_length should be set to 0 for uncompressed packets
+                            decompressed_data = mcp::decompress(
+                                    packet_reader.remaining(),
+                                    decompressed_length);
+
+                            packet_reader = mcp::reader(decompressed_data);
+                        }
+                    }
+
+                    const auto id = packet_reader.read<var_int>();
+
+                    // compile-time fold expression, equivalent to:
+                    /*
+                     * for constexpr (packet_t in Packets...) {
+                     *      if (packet_t::id == id.value) {
+                     *          Packets::handle<Converters...>(get_member_base(packet_t::id), packet_reader.remaining())
+                     *      }
+                     * }
+                     */
                     [[maybe_unused]] const auto _ = ((
                             Packets::id == id.value &&
-                            ((Packets::template handle<Converters...>(get_member_base(Packets::id), reader.read_n(data_length))), true))
+                            ((Packets::template handle<Converters...>(get_member_base(Packets::id), packet_reader.remaining())), true))
                             || ...);
                 }
             }

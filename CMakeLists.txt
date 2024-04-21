@@ -1,8 +1,14 @@
+##################
+## PROJECT SETUP #
+##################
 cmake_minimum_required(VERSION 3.26)
 project(mcpprotocol CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
+#################
+# DEPENDENCIES #
+#################
 include(FetchContent)
 FetchContent_Declare(
         Catch2
@@ -15,8 +21,16 @@ FetchContent_Declare(
         GIT_REPOSITORY https://github.com/fpagliughi/sockpp.git
         GIT_TAG        v1.0.0
 )
-FetchContent_MakeAvailable(Catch2 sockpp)
+FetchContent_Declare(
+        zlibstatic
+        GIT_REPOSITORY https://github.com/zlib-ng/zlib-ng
+        GIT_TAG        2.1.4
+)
+FetchContent_MakeAvailable(Catch2 sockpp zlibstatic)
 
+################
+# MAIN LIBRARY #
+################
 add_library(mcpprotocol-lib
         mcpprotocol/writer.cpp
         mcpprotocol/reader.cpp
@@ -25,16 +39,23 @@ target_include_directories(mcpprotocol-lib PUBLIC .)
 target_compile_options(mcpprotocol-lib PRIVATE
         $<IF:$<CXX_COMPILER_ID:MSVC>,/W4 /WX,-Wall -Wextra -pedantic -Werror>
 )
+target_link_libraries(mcpprotocol-lib PUBLIC zlibstatic)
 
-add_executable(tests
+##########
+# TESTS #
+##########
+add_executable(mcpprotocol-tests
         test/init.cpp
         test/roundtrip.cpp
         test/writer.cpp
         test/deserializer.cpp
 )
-target_link_libraries(tests PRIVATE mcpprotocol-lib Catch2::Catch2WithMain)
+target_link_libraries(mcpprotocol-tests PRIVATE mcpprotocol-lib Catch2::Catch2WithMain)
 
-add_executable(example
+###########
+# EXAMPLE #
+###########
+add_executable(mcpprotocol-example
         example/main.cpp
 )
-target_link_libraries(example PRIVATE mcpprotocol-lib sockpp-static)
+target_link_libraries(mcpprotocol-example PRIVATE mcpprotocol-lib sockpp-static)

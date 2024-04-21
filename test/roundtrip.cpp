@@ -184,3 +184,65 @@ TEST_CASE("Multiple packets two decodes", "[roundtrip]") {
 
 
 }
+
+TEST_CASE("Single packet with compression", "[roundtrip]") {
+    using protocol = mcp::protocol<mcp::version::v765>;
+
+    struct handshake_s {
+        int count = 0;
+        void handle_handshake_s(std::int32_t protocol_version, std::string server_name, std::uint16_t port, std::uint8_t next_state) {
+            count += 1;
+            REQUIRE(protocol_version == 765);
+            REQUIRE(server_name == "localhost");
+            REQUIRE(port == 25565);
+            REQUIRE(next_state == 1);
+        }
+    } deserializer_test;
+
+    const auto test_deserializer = protocol::deserializer<
+            mcp::handshake_s<&handshake_s::handle_handshake_s>
+    >(&deserializer_test);
+
+    auto network_state = mcp::basic_network_state<void>();
+    network_state.compression_threshold = 0;
+
+    const auto bytes = protocol::serialize<mcp::handshake_s>(network_state,
+                                                             std::int32_t(765),
+                                                             std::string("localhost"),
+                                                             std::uint16_t(25565),
+                                                             std::uint8_t(1));
+
+    test_deserializer.decode(network_state, bytes);
+    REQUIRE(deserializer_test.count == 1);
+}
+
+TEST_CASE("Single packet under compression threshold", "[roundtrip]") {
+    using protocol = mcp::protocol<mcp::version::v765>;
+
+    struct handshake_s {
+        int count = 0;
+        void handle_handshake_s(std::int32_t protocol_version, std::string server_name, std::uint16_t port, std::uint8_t next_state) {
+            count += 1;
+            REQUIRE(protocol_version == 765);
+            REQUIRE(server_name == "localhost");
+            REQUIRE(port == 25565);
+            REQUIRE(next_state == 1);
+        }
+    } deserializer_test;
+
+    const auto test_deserializer = protocol::deserializer<
+            mcp::handshake_s<&handshake_s::handle_handshake_s>
+    >(&deserializer_test);
+
+    auto network_state = mcp::basic_network_state<void>();
+    network_state.compression_threshold = 0x7FFFFFFF;  // some huge number we'll never reach
+
+    const auto bytes = protocol::serialize<mcp::handshake_s>(network_state,
+                                                             std::int32_t(765),
+                                                             std::string("localhost"),
+                                                             std::uint16_t(25565),
+                                                             std::uint8_t(1));
+
+    test_deserializer.decode(network_state, bytes);
+    REQUIRE(deserializer_test.count == 1);
+}
