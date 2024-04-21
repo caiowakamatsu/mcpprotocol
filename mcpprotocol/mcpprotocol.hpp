@@ -72,22 +72,23 @@ namespace mcp {
                 return buffer;
             }
 
-            if (state.compression_threshold >= 0 && packet_length.value >= state.compression_threshold) {
-                auto uncompressed_buffer = std::vector<std::byte>();
-                auto compression_writer = mcp::writer(uncompressed_buffer);
-                compression_writer.write(id);
-                compression_writer.write(data);
+            if (state.compression_threshold >= 0) {
 
-                if (uncompressed_buffer.size() >= state.compression_threshold) {
+                if (packet_length.value >= state.compression_threshold) {
+                    auto uncompressed_buffer = std::vector<std::byte>();
+                    auto compression_writer = mcp::writer(uncompressed_buffer);
+                    compression_writer.write(id);
+                    compression_writer.write(data);
                     auto compressed_buffer = mcp::compress(uncompressed_buffer);
 
-                    writer.write(var_int(compressed_buffer.size() + var_int(uncompressed_buffer.size()).size_bytes()));
-                    writer.write(var_int(uncompressed_buffer.size()));
+                    writer.write(var_int(compressed_buffer.size() + packet_length.size_bytes()));
+                    writer.write(packet_length);
                     writer.write(compressed_buffer);
                 } else {
-                    writer.write(var_int(uncompressed_buffer.size()));
+                    writer.write(var_int(packet_length.value + 1 /* +1 for the 0 byte of compressed length */));
                     writer.write(var_int(0));
-                    writer.write(uncompressed_buffer);
+                    writer.write(id);
+                    writer.write(data);
                 }
             } else {
                 writer.write(packet_length);
