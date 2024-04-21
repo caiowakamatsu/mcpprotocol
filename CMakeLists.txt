@@ -24,7 +24,7 @@ FetchContent_Declare(
 FetchContent_Declare(
         zlibstatic
         GIT_REPOSITORY https://github.com/zlib-ng/zlib-ng
-        GIT_TAG        2.1.6
+        GIT_TAG        2.1.4
 )
 FetchContent_MakeAvailable(Catch2 sockpp zlibstatic)
 
@@ -39,18 +39,18 @@ target_include_directories(mcpprotocol-lib PUBLIC .)
 target_compile_options(mcpprotocol-lib PRIVATE
         $<IF:$<CXX_COMPILER_ID:MSVC>,/W4 /WX,-Wall -Wextra -pedantic -Werror>
 )
-target_link_libraries(mcpprotocol-lib PRIVATE zlibstatic)
+target_link_libraries(mcpprotocol-lib PUBLIC zlibstatic)
 
 ##########
 # TESTS #
 ##########
-add_executable(tests
+add_executable(mcpprotocol-tests
         test/init.cpp
         test/roundtrip.cpp
         test/writer.cpp
         test/deserializer.cpp
 )
-target_link_libraries(tests PRIVATE mcpprotocol-lib Catch2::Catch2WithMain)
+target_link_libraries(mcpprotocol-tests PRIVATE mcpprotocol-lib Catch2::Catch2WithMain)
 
 ###########
 # EXAMPLE #

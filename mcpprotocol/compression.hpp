@@ -1,7 +1,7 @@
 #ifndef MCPPROTOCOL_COMPRESSION_HPP
 #define MCPPROTOCOL_COMPRESSION_HPP
 
-#include <zlib.h>
+#include <zlib-ng.h>
 
 namespace mcp {
     inline std::vector<std::byte> TEMP_reverse(std::span<const std::byte> compressed_data) {
@@ -15,11 +15,11 @@ namespace mcp {
     }
 
     inline std::vector<std::byte> decompress(std::span<const std::byte> compressed_data, uint32_t size_hint) {
-        zlibVersion();
+        zlibng_version();
         uLongf /*mut*/ length = size_hint;
         auto *buffer = new std::byte[length];
 
-        int errcode = uncompress(reinterpret_cast<Bytef *>(buffer), &/*mut*/ length,
+        int errcode = zng_uncompress(reinterpret_cast<Bytef *>(buffer), &/*mut*/ length,
                                  reinterpret_cast<const Bytef *>(compressed_data.data()), compressed_data.size());
 
         if (errcode != Z_OK) {
@@ -48,10 +48,10 @@ namespace mcp {
     }
 
     inline std::vector<std::byte> compress(std::span<const std::byte> uncompressed_data) {
-        uLong /*mut*/ length = compressBound(uncompressed_data.size());
+        uLong /*mut*/ length = zng_compressBound(uncompressed_data.size());
         auto *buffer = new std::byte[length];
 
-        int errcode = compress2(reinterpret_cast<Bytef *>(buffer), &/*mut*/ length,
+        int errcode = zng_compress2(reinterpret_cast<Bytef *>(buffer), &/*mut*/ length,
                                 reinterpret_cast<const Bytef *>(uncompressed_data.data()),
                                 uncompressed_data.size_bytes(),
                                 Z_DEFAULT_COMPRESSION);
