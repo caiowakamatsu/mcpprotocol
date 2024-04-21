@@ -34,41 +34,17 @@ namespace mcp {
             };
         }
 
-        template <template <auto _> typename Packet>
         [[nodiscard]] static std::vector<std::byte> encode(auto &state, packet_frame &&frame) {
             auto buffer = std::vector<std::byte>();
             auto writer = mcp::writer(buffer);
 
-            const auto id = var_int(static_cast<std::int32_t>(frame.id));
-            const auto packet_length = var_int(static_cast<std::int32_t>(frame.data.size()) + id.size_bytes());
+            const auto packet_length = var_int(frame.data.size() + mcp::var_int(frame.id).size_bytes());
 
             // SupPorT OlD VerSioN Of MiNeCraFt "iTS GoOd prActIce"
             // - Statements made by the utterly deranged
-            if constexpr (Packet<0>::id == 0xFE) {
-                writer.write(std::uint8_t(id.value));
+            if (frame.id == 0xFE) {
+                writer.write(std::uint8_t(0xFE));
                 writer.write(frame.data);
-                return buffer;
-            }
-
-            writer.write(packet_length);
-            writer.write(id);
-            writer.write(frame.data);
-        }
-
-        template <template <auto _> typename Packet>
-        [[nodiscard]] static std::vector<std::byte> serialize(auto &state, auto &&...args) {
-            auto buffer = std::vector<std::byte>();
-            auto writer = mcp::writer(buffer);
-
-            constexpr auto id = var_int(Packet<0>::id);
-            const auto data = Packet<0>::template serialize<Converters...>(std::forward<decltype(args)>(args)...);
-            const auto packet_length = var_int(data.size() + id.size_bytes());
-
-            // SupPorT OlD VerSioN Of MiNeCraFt "iTS GoOd prActIce"
-            // - Statements made by the utterly deranged
-            if constexpr (id.value == 0xFE) {
-                writer.write(std::uint8_t(id.value));
-                writer.write(data);
                 return buffer;
             }
 
@@ -76,8 +52,8 @@ namespace mcp {
                 if (packet_length.value >= state.compression_threshold.value()) {
                     auto uncompressed_buffer = std::vector<std::byte>();
                     auto compression_writer = mcp::writer(uncompressed_buffer);
-                    compression_writer.write(id);
-                    compression_writer.write(data);
+                    compression_writer.write(mcp::var_int(frame.id));
+                    compression_writer.write(frame.data);
                     auto compressed_buffer = mcp::compress(uncompressed_buffer);
 
                     writer.write(var_int(compressed_buffer.size() + packet_length.size_bytes()));
@@ -86,16 +62,22 @@ namespace mcp {
                 } else {
                     writer.write(var_int(packet_length.value + 1 /* +1 for the 0 byte of compressed length */));
                     writer.write(var_int(0));
-                    writer.write(id);
-                    writer.write(data);
+                    writer.write(var_int(frame.id));
+                    writer.write(frame.data);
                 }
             } else {
                 writer.write(packet_length);
-                writer.write(id);
-                writer.write(data);
+                writer.write(mcp::var_int(frame.id));
+                writer.write(frame.data);
             }
 
             return buffer;
+        }
+
+        template <template <auto _> typename Packet>
+        [[nodiscard]] static std::vector<std::byte> serialize(auto &state, auto &&...args) {
+            auto packet_frame = write<Packet>(std::forward<decltype(args)>(args)...);
+            return encode(state, std::move(packet_frame));
         }
 
         template <typename ...Packets>
