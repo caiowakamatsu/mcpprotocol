@@ -4,25 +4,14 @@
 #include <zlib-ng.h>
 
 namespace mcp {
-    inline std::vector<std::byte> TEMP_reverse(std::span<const std::byte> compressed_data) {
-        // Promote span to vector using constructor
-        std::vector<std::byte> data(compressed_data.begin(), compressed_data.end());
 
-        // Reverse the vector
-        std::reverse(data.begin(), data.end());
+    [[nodiscard]] inline std::vector<std::byte> decompress(std::span<const std::byte> compressed_data, std::size_t size_hint) {
+        auto buffer = std::vector<std::byte>(size_hint);
 
-        return data;
-    }
-
-    inline std::vector<std::byte> decompress(std::span<const std::byte> compressed_data, uint32_t size_hint) {
-        size_t /*mut*/ length = size_hint;
-        auto *buffer = new std::byte[length];
-
-        int errcode = zng_uncompress(reinterpret_cast<Bytef *>(buffer), &/*mut*/ length,
+        const auto errcode = zng_uncompress(reinterpret_cast<Bytef *>(buffer.data()), &size_hint,
                                  reinterpret_cast<const Bytef *>(compressed_data.data()), compressed_data.size());
 
         if (errcode != Z_OK) {
-            delete[] buffer;
             switch (errcode) {
                 case Z_MEM_ERROR:
                     throw std::runtime_error("out of memory for decompression, kill me now");
@@ -34,29 +23,24 @@ namespace mcp {
                     throw std::runtime_error("zlib threw an undocumented error (unreachable hopefully)");
             }
         }
-        if (length != size_hint) {
-            delete[] buffer;
+        if (buffer.size() != size_hint) {
             throw std::runtime_error("received bad size for decompression (buffer too large)");
         }
 
-        auto result = std::vector<std::byte>(buffer, buffer + length);
-
-        delete[] buffer;
-
-        return result;
+        return buffer;
     }
 
-    inline std::vector<std::byte> compress(std::span<const std::byte> uncompressed_data) {
-        size_t /*mut*/ length = zng_compressBound(uncompressed_data.size());
-        auto *buffer = new std::byte[length];
+    [[nodiscard]] inline std::vector<std::byte> compress(std::span<const std::byte> uncompressed_data) {
+        auto length = zng_compressBound(uncompressed_data.size());
 
-        int errcode = zng_compress2(reinterpret_cast<Bytef *>(buffer), &/*mut*/ length,
+        auto buffer = std::vector<std::byte>(length);
+
+        const auto errcode = zng_compress2(reinterpret_cast<Bytef *>(buffer.data()), &length,
                                 reinterpret_cast<const Bytef *>(uncompressed_data.data()),
                                 uncompressed_data.size_bytes(),
                                 Z_DEFAULT_COMPRESSION);
 
         if (errcode != Z_OK) {
-            delete[] buffer;
             switch (errcode) {
                 case Z_MEM_ERROR:
                     throw std::runtime_error("out of memory for compression, kill me now");
@@ -69,11 +53,8 @@ namespace mcp {
             }
         }
 
-        auto result = std::vector<std::byte>(buffer, buffer + length);
-
-        delete[] buffer;
-
-        return result;
+        buffer.resize(length);
+        return buffer;
     }
 }
 #endif //MCPPROTOCOL_COMPRESSION_HPP

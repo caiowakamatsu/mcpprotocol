@@ -72,9 +72,8 @@ namespace mcp {
                 return buffer;
             }
 
-            if (state.compression_threshold >= 0) {
-
-                if (packet_length.value >= state.compression_threshold) {
+            if (state.compression_threshold.has_value()) {
+                if (packet_length.value >= state.compression_threshold.value()) {
                     auto uncompressed_buffer = std::vector<std::byte>();
                     auto compression_writer = mcp::writer(uncompressed_buffer);
                     compression_writer.write(id);
@@ -132,10 +131,10 @@ namespace mcp {
                     auto packet_reader = mcp::reader(reader.read_n(maybe_length->value));
                     std::vector<std::byte> decompressed_data; // pre-declare to extend the lifetime to the whole packet parsing
 
-                    if (state.compression_threshold >= 0) {
+                    if (state.compression_threshold.has_value()) {
                         auto decompressed_length = packet_reader.read<var_int>().value;
 
-                        if (decompressed_length >= state.compression_threshold) {  // decompressed_length should be set to 0 for uncompressed packets
+                        if (decompressed_length >= state.compression_threshold.value()) {  // decompressed_length should be set to 0 for uncompressed packets
                             decompressed_data = mcp::decompress(
                                     packet_reader.remaining(),
                                     decompressed_length);

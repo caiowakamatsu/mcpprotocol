@@ -1,6 +1,8 @@
 #ifndef MCPPROTOCOL_NETWORK_STATE_HPP
 #define MCPPROTOCOL_NETWORK_STATE_HPP
 
+#include <optional>
+
 namespace mcp {
     enum class stream_mode {
         handshaking,
@@ -15,7 +17,7 @@ namespace mcp {
     // it out, so if someone wants to fix it up :) ty.
     template <typename UserData>
     struct basic_network_state {
-        int32_t compression_threshold = -1;
+        std::optional<std::uint32_t> compression_threshold = std::nullopt;
         stream_mode mode = stream_mode::handshaking;
         std::vector<std::byte> previous_partial_packet;
         UserData user_data;
@@ -23,7 +25,7 @@ namespace mcp {
 
     template <>
     struct basic_network_state<void> {
-        int32_t compression_threshold = -1;
+        std::optional<std::uint32_t> compression_threshold = std::nullopt;
         stream_mode mode = stream_mode::handshaking;
         std::vector<std::byte> previous_partial_packet;
     };
