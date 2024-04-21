@@ -15,8 +15,7 @@ namespace mcp {
     }
 
     inline std::vector<std::byte> decompress(std::span<const std::byte> compressed_data, uint32_t size_hint) {
-        zlibng_version();
-        uLongf /*mut*/ length = size_hint;
+        size_t /*mut*/ length = size_hint;
         auto *buffer = new std::byte[length];
 
         int errcode = zng_uncompress(reinterpret_cast<Bytef *>(buffer), &/*mut*/ length,
@@ -48,7 +47,7 @@ namespace mcp {
     }
 
     inline std::vector<std::byte> compress(std::span<const std::byte> uncompressed_data) {
-        uLong /*mut*/ length = zng_compressBound(uncompressed_data.size());
+        size_t /*mut*/ length = zng_compressBound(uncompressed_data.size());
         auto *buffer = new std::byte[length];
 
         int errcode = zng_compress2(reinterpret_cast<Bytef *>(buffer), &/*mut*/ length,
