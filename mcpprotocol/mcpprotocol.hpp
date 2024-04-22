@@ -90,7 +90,7 @@ namespace mcp {
                 (register_packet_base<Packets>(bases...), ...);
             }
 
-            void decode(auto &state, std::span<const std::byte> source) const {
+            void decode(auto &state, std::span<const std::byte> source, std::uint32_t max_packet_count = std::numeric_limits<std::uint32_t>::max()) const {
 
                 // TODO: this can probably be faster with buffer reuse and raw memcpy
                 auto reconstructed_stream = std::vector<std::byte>();
@@ -103,7 +103,7 @@ namespace mcp {
                 while (true) {
                     const auto packet_start = reader.save_cursor();
                     const auto maybe_length = reader.try_read_varint();
-                    if(!maybe_length.has_value() || maybe_length.value().value > reader.remaining().size()) {
+                    if(!maybe_length.has_value() || maybe_length.value().value > reader.remaining().size() || --max_packet_count == 0) {
                         // we have an incomplete packet here
                         reader.restore_cursor(packet_start);
                         state.previous_partial_packet.insert(state.previous_partial_packet.end(), reader.remaining().begin(), reader.remaining().end());
