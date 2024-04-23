@@ -139,6 +139,16 @@ namespace mcp {
                             Packets::id == id.value &&
                             ((Packets::template handle<Converters...>(get_member_base(Packets::id), packet_reader.remaining())), true))
                             || ...);
+
+                    /*
+                     * we need to stop looping to give the client a chance to call a different deserializer class when
+                     * the mode switches
+                     */
+                    if (is_mode_switch_packet(state.mode, id.value)) {
+                        // this sets the previous "packet" to possibly multiple packets, but it doesn't break anything
+                        state.previous_partial_packet = std::vector(reader.remaining().begin(), reader.remaining().end());
+                        break;
+                    }
                 }
             }
 
@@ -169,6 +179,23 @@ namespace mcp {
 
             [[nodiscard]] void* get_member_base(std::uint32_t id) const {
                 return base_ptrs[id];
+            }
+
+            [[nodiscard]] static bool is_mode_switch_packet(stream_mode current_mode, std::uint32_t id) {
+                switch (current_mode) {
+                    case stream_mode::handshaking:
+                        return true;
+                    case stream_mode::status:
+                        return false;
+                    case stream_mode::configuration:
+                        return id == 0x02; // Finish configuration
+                    case stream_mode::login:
+                        return id == 0x03; // Login acknowledged
+                    case stream_mode::play:
+                        return id == 0x67; // Start configuration
+                    default:
+                        return false; // unreachable
+                }
             }
         };
     };
