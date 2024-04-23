@@ -19,7 +19,7 @@ namespace mcp {
     struct basic_network_state {
         std::optional<std::uint32_t> compression_threshold = std::nullopt;
         stream_mode mode = stream_mode::handshaking;
-        std::vector<std::byte> previous_partial_packet;
+        std::vector<std::byte> buffer;
         UserData user_data;
     };
 
@@ -27,7 +27,7 @@ namespace mcp {
     struct basic_network_state<void> {
         std::optional<std::uint32_t> compression_threshold = std::nullopt;
         stream_mode mode = stream_mode::handshaking;
-        std::vector<std::byte> previous_partial_packet;
+        std::vector<std::byte> buffer;
     };
 }
 

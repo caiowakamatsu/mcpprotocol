@@ -140,34 +140,29 @@ TEST_CASE("Multiple packets one decode", "[roundtrip]") {
     actual_bytes.insert(actual_bytes.end(), bytes.begin(), bytes.end());
 
     test_deserializer.decode(network_state, actual_bytes);
+    test_deserializer.decode(network_state, actual_bytes);
     REQUIRE(deserializer_test.count == 2);
 }
 
 TEST_CASE("Multiple packets two decodes", "[roundtrip]") {
     using protocol = mcp::protocol<mcp::version::v765>;
 
-    struct handshake_s {
+    struct keep_alive_c {
         int count = 0;
-        void handle_handshake_s(std::int32_t protocol_version, std::string server_name, std::uint16_t port, std::uint8_t next_state) {
+        void handle(std::uint64_t payload) {
             count += 1;
-            REQUIRE(protocol_version == 765);
-            REQUIRE(server_name == "localhost");
-            REQUIRE(port == 25565);
-            REQUIRE(next_state == 1);
+            REQUIRE(payload == 0xCAFEBABE);
         }
     } deserializer_test;
 
     const auto test_deserializer = protocol::deserializer<
-            mcp::handshake_s<&handshake_s::handle_handshake_s>
+            mcp::play_keep_alive_c<&keep_alive_c::handle>
     >(&deserializer_test);
 
     auto network_state = mcp::basic_network_state<void>();
+    network_state.mode = mcp::stream_mode::play;
 
-    const auto bytes = protocol::serialize<mcp::handshake_s>(network_state,
-                                                             std::int32_t(765),
-                                                             std::string("localhost"),
-                                                             std::uint16_t(25565),
-                                                             std::uint8_t(1));
+    const auto bytes = protocol::serialize<mcp::play_keep_alive_c>(network_state, std::uint64_t(0xCAFEBABE));
 
     auto actual_bytes = std::vector<std::byte>();
     actual_bytes.insert(actual_bytes.end(), bytes.begin(), bytes.end());

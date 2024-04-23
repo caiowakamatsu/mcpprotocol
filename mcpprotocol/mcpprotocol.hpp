@@ -24,6 +24,12 @@ namespace mcp {
         std::vector<std::byte> data;
     };
 
+    enum class decode_status {
+        eof,
+        incomplete,
+        state_changing,
+    };
+
     template <mcp::version version, typename ...Converters>
     struct protocol {
         template <template <auto _> typename Packet>
@@ -57,7 +63,7 @@ namespace mcp {
                     auto compressed_buffer = mcp::compress(uncompressed_buffer);
 
                     writer.write(var_int(compressed_buffer.size() + packet_length.size_bytes()));
-                    writer.write(packet_length);
+                    writer.write(var_int(packet_length));
                     writer.write(compressed_buffer);
                 } else {
                     writer.write(var_int(packet_length.value + 1 /* +1 for the 0 byte of compressed length */));
@@ -82,6 +88,26 @@ namespace mcp {
 
         template <typename ...Packets>
         struct deserializer {
+            private:
+                [[nodiscard]] std::vector<std::byte> handle_compression(std::optional<std::uint32_t> threshold, std::span<const std::byte> source) const {
+                    auto reader = mcp::reader(source);
+
+                    if (threshold.has_value()) {
+                        const auto data_length = reader.read<mcp::var_int>().value;
+                        if (data_length == 0) {
+                            const auto rest = reader.remaining();
+                            return { rest.begin(), rest.end() };
+                        } else {
+                            return mcp::decompress(reader.remaining(), data_length);
+                        }
+                    } else {
+                        const auto rest = reader.remaining();
+                        return { rest.begin(), rest.end() };
+                    }
+                }
+            public:
+
+
             constexpr static std::uint32_t max_id = detail::max_packet_id<Packets...>::value;
             std::array<void *, max_id + 1> base_ptrs = {};
 
@@ -90,66 +116,41 @@ namespace mcp {
                 (register_packet_base<Packets>(bases...), ...);
             }
 
-            void decode(auto &state, std::span<const std::byte> source, std::uint32_t max_packet_count = std::numeric_limits<std::uint32_t>::max()) const {
+            decode_status decode(auto &state, std::span<const std::byte> source) const {
+                state.buffer.insert(state.buffer.end(), source.begin(), source.end());
 
-                // TODO: this can probably be faster with buffer reuse and raw memcpy
-                auto reconstructed_stream = std::vector<std::byte>();
-                reconstructed_stream.reserve(state.previous_partial_packet.size() + source.size());
-                reconstructed_stream.insert(reconstructed_stream.end(), state.previous_partial_packet.begin(), state.previous_partial_packet.end());
-                reconstructed_stream.insert(reconstructed_stream.end(), source.begin(), source.end());
-                state.previous_partial_packet.clear();
+                auto final_state = decode_status::eof;
 
-                auto reader = mcp::reader(reconstructed_stream);
+                auto bytes_consumed = std::uint64_t(0);
                 while (true) {
-                    const auto packet_start = reader.save_cursor();
-                    const auto maybe_length = reader.try_read_varint();
-                    if(!maybe_length.has_value() || maybe_length.value().value > reader.remaining().size() || --max_packet_count == 0) {
-                        // we have an incomplete packet here
-                        reader.restore_cursor(packet_start);
-                        state.previous_partial_packet.insert(state.previous_partial_packet.end(), reader.remaining().begin(), reader.remaining().end());
+                    auto reader = mcp::reader({state.buffer.begin() + bytes_consumed, state.buffer.end()});
+                    const auto length = reader.try_read_varint();
+
+                    if (!length.has_value() || length->value > reader.remaining().size()) {
+                        final_state = decode_status::incomplete;
                         break;
                     }
+                    bytes_consumed += reader.save_cursor();
+                    const auto packet_data = handle_compression(state.compression_threshold, reader.read_n(length->value));
 
-                    auto packet_reader = mcp::reader(reader.read_n(maybe_length->value));
-                    std::vector<std::byte> decompressed_data; // pre-declare to extend the lifetime to the whole packet parsing
+                    auto packet_reader = mcp::reader(packet_data);
+                    const auto packet_id = packet_reader.read<mcp::var_int>().value;
 
-                    if (state.compression_threshold.has_value()) {
-                        auto decompressed_length = packet_reader.read<var_int>().value;
-
-                        if (decompressed_length >= state.compression_threshold.value()) {  // decompressed_length should be set to 0 for uncompressed packets
-                            decompressed_data = mcp::decompress(
-                                    packet_reader.remaining(),
-                                    decompressed_length);
-
-                            packet_reader = mcp::reader(decompressed_data);
-                        }
-                    }
-
-                    const auto id = packet_reader.read<var_int>();
-
-                    // compile-time fold expression, equivalent to:
-                    /*
-                     * for constexpr (packet_t in Packets...) {
-                     *      if (packet_t::id == id.value) {
-                     *          Packets::handle<Converters...>(get_member_base(packet_t::id), packet_reader.remaining())
-                     *      }
-                     * }
-                     */
                     [[maybe_unused]] const auto _ = ((
-                            Packets::id == id.value &&
+                            Packets::id == packet_id &&
                             ((Packets::template handle<Converters...>(get_member_base(Packets::id), packet_reader.remaining())), true))
                             || ...);
 
-                    /*
-                     * we need to stop looping to give the client a chance to call a different deserializer class when
-                     * the mode switches
-                     */
-                    if (is_mode_switch_packet(state.mode, id.value)) {
-                        // this sets the previous "packet" to possibly multiple packets, but it doesn't break anything
-                        state.previous_partial_packet = std::vector(reader.remaining().begin(), reader.remaining().end());
+                    bytes_consumed += length->value;
+
+                    if (is_mode_switch_packet(state.mode, packet_id)) {
+                        final_state = decode_status::state_changing;
                         break;
                     }
                 }
+
+                state.buffer.erase(state.buffer.begin(), state.buffer.begin() + bytes_consumed);
+                return final_state;
             }
 
         private:
