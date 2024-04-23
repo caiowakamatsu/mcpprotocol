@@ -136,6 +136,11 @@ namespace mcp {
                     auto packet_reader = mcp::reader(packet_data);
                     const auto packet_id = packet_reader.read<mcp::var_int>().value;
 
+
+                    if (is_mode_switch_packet(state.mode, packet_id)) {
+                        final_state = decode_status::state_changing;
+                    }
+
                     [[maybe_unused]] const auto _ = ((
                             Packets::id == packet_id &&
                             ((Packets::template handle<Converters...>(get_member_base(Packets::id), packet_reader.remaining())), true))
@@ -143,8 +148,7 @@ namespace mcp {
 
                     bytes_consumed += length->value;
 
-                    if (is_mode_switch_packet(state.mode, packet_id)) {
-                        final_state = decode_status::state_changing;
+                    if (final_state == decode_status::state_changing) {
                         break;
                     }
                 }
