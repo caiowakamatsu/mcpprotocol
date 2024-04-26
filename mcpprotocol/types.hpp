@@ -22,8 +22,6 @@ namespace mcp {
 
     struct uuid {  };
 
-    struct login_success_property { };
-
     struct text_component { };
 
     struct nbt { };

@@ -61,13 +61,18 @@ namespace mcp {
         }
     };
 
+    struct login_success_property {
+        std::string name;
+        std::string value;
+        std::optional<std::string> signature;
+    };
     template<auto Handler>
     struct login_success_c : public detail::packet_base<0x02, Handler> {
         template <typename ...Converters>
         static std::vector<std::byte> serialize(
                 detail::get_type_t<mcp::uuid, Converters...>::type_target uuid,
                 std::string username,
-                std::span<typename detail::get_type_t<mcp::login_success_property, Converters...>::type_target> properties) {
+                std::span<login_success_property> properties) {
             auto buffer = std::vector<std::byte>();
             auto writer = mcp::writer(buffer);
 
@@ -75,7 +80,12 @@ namespace mcp {
             writer.write(username);
             writer.write(mcp::var_int(properties.size()));
             for (const auto &property : properties) {
-                detail::get_type_t<mcp::login_success_property, Converters...>::to(property, writer);
+                writer.write(property.name);
+                writer.write(property.value);
+                writer.write(property.signature.has_value());
+                if (property.signature.has_value()) {
+                    writer.write(property.signature.value());
+                }
             }
 
             return buffer;

@@ -35,7 +35,6 @@ Now you might be wondering, how about the types like a chunk, nbt, uuid, etc...?
 This library is designed to allow users to BYOT (bring your own type) for these types. The following are the types you will need to provide
 ```
 mcp::uuid
-mcp::login_success_property (This is going to be removed... maybe)
 mcp::text_component
 mcp::nbt
 mcp::position
