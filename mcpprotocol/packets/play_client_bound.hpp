@@ -1532,12 +1532,12 @@ namespace mcp {
             writer.write(previous_game_mode);
             writer.write(is_debug);
             writer.write(is_flat);
-            if (death_dimension_name.has_value()) {
+            if (death_dimension_name.has_value() && death_location.has_value()) {
                 writer.write(true); // "has death location"
                 writer.write(death_dimension_name.value());
-            }
-            if (death_location.has_value()) {
                 detail::get_type_t<mcp::position, Converters...>::to(*death_location, writer);
+            } else {
+                writer.write(false);
             }
             writer.write(portal_cooldown);
 
