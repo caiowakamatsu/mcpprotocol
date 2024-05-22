@@ -6,7 +6,11 @@
 
 namespace mcp {
     struct var_int {
-        std::int32_t value;
+        std::int32_t value = 0;
+
+        var_int() = default;
+
+        explicit var_int(std::int32_t value) : value(value) {}
 
         [[nodiscard]] inline std::int32_t size_bytes() const noexcept
         {
@@ -18,7 +22,11 @@ namespace mcp {
             return 5;
         }
     };
-    struct var_long { std::int64_t value; };
+    struct var_long {
+        std::int64_t value;
+
+        explicit var_long(std::int64_t value) : value(value) {}
+    };
 
     struct uuid {  };
 
