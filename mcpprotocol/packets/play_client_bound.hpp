@@ -2283,10 +2283,10 @@ namespace mcp {
 
                 if (entry.add.active) {
                     writer.write(entry.add.name);
-                    writer.write(entry.add.value);
-                    writer.write(entry.add.signature.has_value());
-                    if (entry.add.signature.has_value()) {
-                        writer.write(entry.add.signature.value());
+                    writer.write(mcp::var_int(entry.add.properties.size()));
+                    for (const auto &property : entry.add.properties) {
+                        writer.write(property.name);
+                        writer.write(property.value);
                     }
                 }
                 if (entry.initialize_chat.active) {
