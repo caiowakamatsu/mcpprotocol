@@ -2290,7 +2290,7 @@ namespace mcp {
                     }
                 }
                 if (entry.initialize_chat.active) {
-                    writer.write(entry.initialize_chat.chat_session);
+                    detail::get_type_t<mcp::uuid, Converters...>::to(entry.initialize_chat.chat_session, writer);
                     writer.write(entry.initialize_chat.public_key_expiry_time);
                     writer.write(entry.initialize_chat.public_key_size);
                     writer.write(entry.initialize_chat.encoded_public_key);
