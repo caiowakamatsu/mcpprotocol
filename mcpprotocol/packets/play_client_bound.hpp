@@ -2279,7 +2279,7 @@ namespace mcp {
             writer.write(std::byte(action_flag));
             writer.write(mcp::var_int(entries.size()));
             for (const auto &entry : entries) {
-                writer.write(entry.uuid);
+                detail::get_type_t<mcp::uuid, Converters...>::to(*entry.uuid, writer);
 
                 if (entry.add.active) {
                     writer.write(entry.add.name);
