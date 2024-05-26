@@ -2206,20 +2206,25 @@ namespace mcp {
         }
     };
 
+    struct player_info_update_property {
+        std::string name;
+        std::string value;
+        std::optional<std::string> signature;
+    };
+
     template <typename UUID, typename TextComponent>
     struct player_info_update_action {
+        UUID uuid = {};
         struct add_t {
             bool active = false;
-            std::string name;
-            std::string value;
-            std::optional<std::string> signature;
+            std::string name = "";
+            std::vector<player_info_update_property> properties = {};
         } add;
         struct initialize_chat_t {
             bool active = false;
             bool has_signature_data = false;
             UUID chat_session;
             std::int64_t public_key_expiry_time;
-            mcp::var_int public_key_size;
             std::vector<std::byte> encoded_public_key;
             std::vector<std::byte> signature;
         } initialize_chat;
@@ -2229,7 +2234,7 @@ namespace mcp {
         } update_game_mode;
         struct listed_t {
             bool active = false;
-            bool is_listed;
+            bool is_listed = false;
         } listed;
         struct latency_t {
             bool active = false;
@@ -2271,9 +2276,11 @@ namespace mcp {
                 }
             }
 
-            writer.write(mcp::var_int(action_flag));
+            writer.write(std::byte(action_flag));
             writer.write(mcp::var_int(entries.size()));
             for (const auto &entry : entries) {
+                writer.write(entry.uuid);
+
                 if (entry.add.active) {
                     writer.write(entry.add.name);
                     writer.write(entry.add.value);
