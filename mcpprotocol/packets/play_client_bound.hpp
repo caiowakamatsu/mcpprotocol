@@ -1853,8 +1853,8 @@ namespace mcp {
         template <typename ...Converters>
         static std::vector<std::byte> serialize(
                 mcp::var_int entity_id,
-                std::int16_t yaw,
-                std::int16_t pitch,
+                std::uint8_t yaw,
+                std::uint8_t pitch,
                 bool on_ground) {
             auto buffer = std::vector<std::byte>();
             auto writer = mcp::writer(buffer);
